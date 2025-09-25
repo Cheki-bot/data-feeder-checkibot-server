@@ -19,9 +19,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       HUSKY: 0
-    defaults:
-      run:
-        working-directory: ./data-feeder-server
     steps:
       - name: Checkout
         uses: actions/checkout@v4
