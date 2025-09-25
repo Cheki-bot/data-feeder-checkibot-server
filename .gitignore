@@ -41,6 +41,3 @@ database-pg/*
 # enviroment
 .env*
 !.env.example
-
-# node
-package-lock.json
