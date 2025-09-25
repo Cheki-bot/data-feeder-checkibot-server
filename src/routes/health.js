@@ -8,7 +8,7 @@ router.get('/', (req, res) => {
     status: 'ok',
     service: 'data-feeder-server',
     timestamp: new Date().toISOString(),
-    env: env.NODE_ENV || 'development'
+    env: env.NODE_ENV || 'development',
   });
 });
 

@@ -3,14 +3,17 @@
 Base API built with Express.
 
 ## Requirements
+
 - Node.js >= 18
 
 ## Installation
+
 ```bash
 npm install
 ```
 
 ## Environment variables
+
 Copy `.env.example` to `.env` and adjust values.
 
 ```bash
@@ -18,10 +21,12 @@ cp .env.example .env
 ```
 
 ## Scripts
+
 - `npm run dev` starts the server with auto-reload (nodemon)
 - `npm start` starts in production mode
 
 ## Structure
+
 ```
 src/
   app.js
@@ -36,9 +41,11 @@ src/
 ```
 
 ## Health endpoint
+
 GET `/api/health`
 
 Sample response:
+
 ```json
 {
   "status": "ok",
