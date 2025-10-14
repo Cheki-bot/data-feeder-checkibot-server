@@ -21,9 +21,7 @@ export async function initializeDatabase() {
     const db = client.db(env.MONGO_DB_NAME);
     dbConnection = db;
 
-    console.log(
-      `✓ Connected to MongoDB database: ${env.MONGO_DB_NAME}`
-    );
+    console.log(`✓ Connected to MongoDB database: ${env.MONGO_DB_NAME}`);
 
     await db.collection('users').createIndex({ email: 1 }, { unique: true });
     console.log('✓ Created unique index on users.email');
@@ -47,17 +45,13 @@ async function createInitialAdmin(db) {
   const adminPassword = env.ADMIN_PASSWORD;
 
   if (!adminEmail || !adminPassword) {
-    console.warn(
-      '⚠ ADMIN_EMAIL or ADMIN_PASSWORD not set in environment variables'
-    );
+    console.warn('⚠ ADMIN_EMAIL or ADMIN_PASSWORD not set in environment variables');
     console.warn('⚠ Skipping admin user creation');
     return;
   }
 
   try {
-    const existingAdmin = await db
-      .collection('users')
-      .findOne({ email: adminEmail });
+    const existingAdmin = await db.collection('users').findOne({ email: adminEmail });
 
     if (!existingAdmin) {
       const adminUser = {

@@ -4,10 +4,7 @@ import { body } from 'express-validator';
  * Validation rules for user registration
  */
 export const registerValidation = [
-  body('email')
-    .isEmail()
-    .withMessage('Must be a valid email address')
-    .normalizeEmail(),
+  body('email').isEmail().withMessage('Must be a valid email address').normalizeEmail(),
 
   body('password')
     .isLength({ min: 8 })
@@ -26,10 +23,7 @@ export const registerValidation = [
  * Validation rules for user login
  */
 export const loginValidation = [
-  body('email')
-    .isEmail()
-    .withMessage('Must be a valid email address')
-    .normalizeEmail(),
+  body('email').isEmail().withMessage('Must be a valid email address').normalizeEmail(),
 
   body('password').notEmpty().withMessage('Password is required'),
 ];

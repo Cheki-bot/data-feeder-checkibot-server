@@ -151,10 +151,7 @@ describe('Authentication System', () => {
     test('should fail with deactivated account', async () => {
       await db
         .collection('users')
-        .updateOne(
-          { email: 'testuser@example.com' },
-          { $set: { is_active: false } }
-        );
+        .updateOne({ email: 'testuser@example.com' }, { $set: { is_active: false } });
 
       const response = await request(app).post('/api/auth/login').send({
         email: 'testuser@example.com',
@@ -207,9 +204,7 @@ describe('Authentication System', () => {
 
       expect(successResponse.status).toBe(200);
 
-      const user = await db
-        .collection('users')
-        .findOne({ email: 'testuser@example.com' });
+      const user = await db.collection('users').findOne({ email: 'testuser@example.com' });
       expect(user.failed_attempts).toBe(0);
     });
 
@@ -223,7 +218,7 @@ describe('Authentication System', () => {
             failed_attempts: 5,
             lockout_until: pastDate,
           },
-        }
+        },
       );
 
       const response = await request(app).post('/api/auth/login').send({
@@ -281,9 +276,7 @@ describe('Authentication System', () => {
     });
 
     test('should fail with malformed authorization header', async () => {
-      const response = await request(app)
-        .get('/api/auth/me')
-        .set('Authorization', 'InvalidFormat');
+      const response = await request(app).get('/api/auth/me').set('Authorization', 'InvalidFormat');
 
       expect(response.status).toBe(401);
     });
@@ -360,10 +353,7 @@ describe('Authentication System', () => {
       test('should allow admin to activate deactivated account', async () => {
         await db
           .collection('users')
-          .updateOne(
-            { email: 'regularuser@example.com' },
-            { $set: { is_active: false } }
-          );
+          .updateOne({ email: 'regularuser@example.com' }, { $set: { is_active: false } });
 
         const response = await request(app)
           .patch('/api/auth/users/regularuser@example.com/activate')
@@ -398,9 +388,7 @@ describe('Authentication System', () => {
         expect(response.status).toBe(200);
         expect(response.body.message).toContain('deleted permanently');
 
-        const user = await db
-          .collection('users')
-          .findOne({ email: 'regularuser@example.com' });
+        const user = await db.collection('users').findOne({ email: 'regularuser@example.com' });
         expect(user).toBeNull();
       });
 

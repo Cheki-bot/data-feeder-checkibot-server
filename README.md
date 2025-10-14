@@ -1,9 +1,6 @@
 # Data Feeder Server - CheckiBot# Data Feeder Server
 
-
-
 RESTful API built with Express.js featuring JWT authentication, MongoDB integration, and comprehensive user management.Bas### Security Features
-
 
 - ✅ **Password Hashing**: bcrypt with automatic salt generation (12 rounds)
 - ✅ **JWT Tokens**: HS256 algorithm with 24-hour expiration
@@ -15,11 +12,7 @@ RESTful API built with Express.js featuring JWT authentication, MongoDB integrat
 
 ## 📡 API Endpointswith Express.
 
-
-
 ## Requirements## Requirements
-
-
 
 - Node.js >= 18- Node.js >= 18
 
@@ -29,13 +22,13 @@ RESTful API built with Express.js featuring JWT authentication, MongoDB integrat
 
 ## Installation
 
-```bash
+````bash
 
 ```bashnpm install
 
 npm install```
 
-```
+````
 
 ## Environment variables
 
@@ -45,13 +38,13 @@ Copy `.env.example` to `.env` and adjust the values.
 
 Copy `.env.example` to `.env` and adjust the values:
 
-```bash
+````bash
 
 ```bashcp .env.example .env
 
 cp .env.example .env```
 
-```
+````
 
 ## Available scripts
 
@@ -63,7 +56,7 @@ cp .env.example .env```
 
 # MongoDB Configuration- `npm run lint`: run ESLint
 
-MONGO_URI=mongodb://localhost:27017  # or MongoDB Atlas URI- `npm run lint:fix`: auto-fix ESLint issues
+MONGO_URI=mongodb://localhost:27017 # or MongoDB Atlas URI- `npm run lint:fix`: auto-fix ESLint issues
 
 MONGO_DB_NAME=checkibot_db- `npm run format`: format code with Prettier
 
@@ -87,11 +80,7 @@ NODE_ENV=development
 
 ```When you run `npm install`, Husky initializes automatically via the `prepare` script.
 
-
-
 > **⚠️ SECURITY NOTE**: Always use strong passwords and change the `JWT_SECRET` in production!### Git hooks
-
-
 
 Generate a strong JWT secret:- `pre-commit`: runs `lint-staged` to lint/format staged files.
 
@@ -105,7 +94,7 @@ node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"If you�
 
 ## Available scripts
 
-```
+````
 
 - `npm run dev`: start the server with auto-reload (nodemon)src/
 
@@ -137,13 +126,13 @@ node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"If you�
 
    npm installGET `/api/health`
 
-   ```
+````
 
 Sample response:
 
 2. Configure environment variables in `.env`
 
-```json
+````json
 
 3. Start the server:{
 
@@ -157,38 +146,36 @@ Sample response:
 
 4. The admin user will be created automatically on first startup}
 
-```
+````
 
 5. Test the health endpoint:
 
-   ```bash## Editor recommendations (optional)
+   ````bash## Editor recommendations (optional)
 
    curl http://localhost:3000/api/health
 
    ```In VS Code, enable format on save and ESLint fixes:
-
-
+   ````
 
 ## 🔐 Authentication System```jsonc
 
 {
 
-The API uses JWT (JSON Web Tokens) for authentication with bcrypt password hashing and account lockout protection.  "editor.formatOnSave": true,
+The API uses JWT (JSON Web Tokens) for authentication with bcrypt password hashing and account lockout protection. "editor.formatOnSave": true,
 
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
+"editor.defaultFormatter": "esbenp.prettier-vscode",
 
-### User Roles  "editor.codeActionsOnSave": {
+### User Roles "editor.codeActionsOnSave": {
 
     "source.fixAll.eslint": true,
 
-- **Admin**: Full access - can create, deactivate, activate, and delete user accounts    "source.organizeImports": true,
+- **Admin**: Full access - can create, deactivate, activate, and delete user accounts "source.organizeImports": true,
 
-- **User**: Standard access - can register, login, and use protected endpoints  },
+- **User**: Standard access - can register, login, and use protected endpoints },
 
 }
 
 ### Security Features```
-
 
 - ✅ **Password Hashing**: bcrypt with automatic salt generation (12 rounds)
 - ✅ **JWT Tokens**: 24-hour expiration
@@ -207,6 +194,7 @@ The API uses JWT (JSON Web Tokens) for authentication with bcrypt password hashi
 Check if the server is running.
 
 **Response:**
+
 ```json
 {
   "status": "ok",
@@ -227,6 +215,7 @@ Check if the server is running.
 Register a new user account. Default role is `User`.
 
 **Request Body:**
+
 ```json
 {
   "email": "user@example.com",
@@ -236,6 +225,7 @@ Register a new user account. Default role is `User`.
 ```
 
 **Response (201 Created):**
+
 ```json
 {
   "email": "user@example.com",
@@ -246,6 +236,7 @@ Register a new user account. Default role is `User`.
 ```
 
 **Example with curl:**
+
 ```bash
 curl -X POST http://localhost:3000/api/auth/register \
   -H "Content-Type: application/json" \
@@ -265,6 +256,7 @@ curl -X POST http://localhost:3000/api/auth/register \
 Authenticate with email and password to receive a JWT token.
 
 **Request Body:**
+
 ```json
 {
   "email": "user@example.com",
@@ -273,6 +265,7 @@ Authenticate with email and password to receive a JWT token.
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -281,10 +274,12 @@ Authenticate with email and password to receive a JWT token.
 ```
 
 **Failed Attempts:**
+
 - After 1-4 failed attempts: Returns remaining attempts
 - After 5 failed attempts: Account locked for 60 minutes
 
 **Example with curl:**
+
 ```bash
 curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
@@ -303,11 +298,13 @@ curl -X POST http://localhost:3000/api/auth/login \
 Get the profile of the currently authenticated user.
 
 **Headers:**
+
 ```
 Authorization: Bearer YOUR_TOKEN_HERE
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "email": "user@example.com",
@@ -318,6 +315,7 @@ Authorization: Bearer YOUR_TOKEN_HERE
 ```
 
 **Example with curl:**
+
 ```bash
 curl -X GET http://localhost:3000/api/auth/me \
   -H "Authorization: Bearer YOUR_TOKEN_HERE"
@@ -336,11 +334,13 @@ These endpoints require Admin role and valid JWT token.
 List all registered users (Admin only).
 
 **Headers:**
+
 ```
 Authorization: Bearer ADMIN_TOKEN_HERE
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "users": [
@@ -362,6 +362,7 @@ Authorization: Bearer ADMIN_TOKEN_HERE
 ```
 
 **Example with curl:**
+
 ```bash
 curl -X GET http://localhost:3000/api/auth/users \
   -H "Authorization: Bearer ADMIN_TOKEN_HERE"
@@ -376,11 +377,13 @@ curl -X GET http://localhost:3000/api/auth/users \
 Deactivate a user account. User will not be able to login until reactivated (Admin only).
 
 **Headers:**
+
 ```
 Authorization: Bearer ADMIN_TOKEN_HERE
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "message": "User user@example.com has been deactivated"
@@ -388,6 +391,7 @@ Authorization: Bearer ADMIN_TOKEN_HERE
 ```
 
 **Example with curl:**
+
 ```bash
 curl -X PATCH http://localhost:3000/api/auth/users/user@example.com/deactivate \
   -H "Authorization: Bearer ADMIN_TOKEN_HERE"
@@ -402,11 +406,13 @@ curl -X PATCH http://localhost:3000/api/auth/users/user@example.com/deactivate \
 Activate a previously deactivated user account (Admin only).
 
 **Headers:**
+
 ```
 Authorization: Bearer ADMIN_TOKEN_HERE
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "message": "User user@example.com has been activated"
@@ -414,6 +420,7 @@ Authorization: Bearer ADMIN_TOKEN_HERE
 ```
 
 **Example with curl:**
+
 ```bash
 curl -X PATCH http://localhost:3000/api/auth/users/user@example.com/activate \
   -H "Authorization: Bearer ADMIN_TOKEN_HERE"
@@ -428,11 +435,13 @@ curl -X PATCH http://localhost:3000/api/auth/users/user@example.com/activate \
 Permanently delete a user account. This action cannot be undone (Admin only).
 
 **Headers:**
+
 ```
 Authorization: Bearer ADMIN_TOKEN_HERE
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "message": "User user@example.com has been deleted permanently"
@@ -440,6 +449,7 @@ Authorization: Bearer ADMIN_TOKEN_HERE
 ```
 
 **Example with curl:**
+
 ```bash
 curl -X DELETE http://localhost:3000/api/auth/users/user@example.com \
   -H "Authorization: Bearer ADMIN_TOKEN_HERE"
@@ -483,6 +493,7 @@ The test suite includes 20+ tests covering:
 ### Failed Login Protection
 
 1. **First 4 attempts**: User receives remaining attempts count
+
    ```json
    {
      "message": "Invalid credentials. 3 attempts remaining."
@@ -490,6 +501,7 @@ The test suite includes 20+ tests covering:
    ```
 
 2. **5th failed attempt**: Account is locked for 60 minutes
+
    ```json
    {
      "message": "Account locked due to too many failed attempts. Try again in 60 minutes."
@@ -497,6 +509,7 @@ The test suite includes 20+ tests covering:
    ```
 
 3. **During lockout**: Shows remaining time in Bolivia timezone (UTC-4)
+
    ```json
    {
      "message": "Account locked due to too many failed attempts. Try again in 45 minutes (unlocks at 15:30:00)"
@@ -573,8 +586,8 @@ In VS Code, enable format on save and ESLint fixes:
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true,
-    "source.organizeImports": true
-  }
+    "source.organizeImports": true,
+  },
 }
 ```
 

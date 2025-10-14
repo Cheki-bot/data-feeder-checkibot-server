@@ -30,9 +30,7 @@ export function authenticateToken(req, res, next) {
  */
 export function requireAdmin(req, res, next) {
   if (!req.user || req.user.role !== 'Admin') {
-    return res
-      .status(403)
-      .json({ message: 'Admin access required. Insufficient permissions.' });
+    return res.status(403).json({ message: 'Admin access required. Insufficient permissions.' });
   }
   next();
 }
@@ -54,17 +52,13 @@ export async function getCurrentUser(req, res, next) {
     }
 
     if (!user.is_active) {
-      return res
-        .status(403)
-        .json({ message: 'Account is deactivated. Contact administrator.' });
+      return res.status(403).json({ message: 'Account is deactivated. Contact administrator.' });
     }
 
     delete user.password_hash;
     req.currentUser = user;
     next();
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: 'Database error', error: error.message });
+    return res.status(500).json({ message: 'Database error', error: error.message });
   }
 }

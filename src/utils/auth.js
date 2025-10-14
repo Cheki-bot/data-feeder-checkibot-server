@@ -6,8 +6,8 @@ const SALT_ROUNDS = 12;
 
 /**
  * Hash a password using bcrypt with automatic salt generation
- * @param {string} password 
- * @returns {Promise<string>} 
+ * @param {string} password
+ * @returns {Promise<string>}
  */
 export async function hashPassword(password) {
   return await bcrypt.hash(password, SALT_ROUNDS);
@@ -33,9 +33,9 @@ export function generateToken(payload, expiresIn = '24h') {
   if (!env.JWT_SECRET) {
     throw new Error('JWT_SECRET is not defined in environment variables');
   }
-  return jwt.sign(payload, env.JWT_SECRET, { 
+  return jwt.sign(payload, env.JWT_SECRET, {
     expiresIn,
-    algorithm: 'HS256'
+    algorithm: 'HS256',
   });
 }
 
@@ -50,6 +50,6 @@ export function decodeToken(token) {
     throw new Error('JWT_SECRET is not defined in environment variables');
   }
   return jwt.verify(token, env.JWT_SECRET, {
-    algorithms: ['HS256']
+    algorithms: ['HS256'],
   });
 }

@@ -19,21 +19,21 @@ function validateEnvVar(name, value, options = {}) {
   if (required && !value) {
     throw new Error(
       `❌ SECURITY ERROR: Environment variable ${name} is required but not set. ` +
-        `Please check your .env file.`
+        `Please check your .env file.`,
     );
   }
 
   if (value && minLength > 0 && value.length < minLength) {
     throw new Error(
       `❌ SECURITY ERROR: Environment variable ${name} must be at least ${minLength} characters. ` +
-        `Current length: ${value.length}. This is a security requirement.`
+        `Current length: ${value.length}. This is a security requirement.`,
     );
   }
 
   if (value && pattern && !pattern.test(value)) {
     throw new Error(
       `❌ SECURITY ERROR: Environment variable ${name} has invalid format. ` +
-        `Please check your .env file.`
+        `Please check your .env file.`,
     );
   }
 }
@@ -66,7 +66,7 @@ if (
 ) {
   console.warn(
     '⚠️  WARNING: JWT_SECRET appears to be weak or default. ' +
-      'Generate a strong secret with: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"'
+      "Generate a strong secret with: node -e \"console.log(require('crypto').randomBytes(64).toString('hex'))\"",
   );
 }
 
@@ -82,25 +82,18 @@ validateEnvVar('ADMIN_PASSWORD', process.env.ADMIN_PASSWORD, {
 });
 
 // Warn about weak admin password
-if (
-  process.env.ADMIN_PASSWORD &&
-  process.env.ADMIN_PASSWORD.length < 12 &&
-  isProduction
-) {
+if (process.env.ADMIN_PASSWORD && process.env.ADMIN_PASSWORD.length < 12 && isProduction) {
   console.warn(
     '⚠️  WARNING: ADMIN_PASSWORD is shorter than 12 characters. ' +
-      'Use a stronger password in production (recommended: 16+ characters).'
+      'Use a stronger password in production (recommended: 16+ characters).',
   );
 }
 
 // CORS validation for production
-if (
-  isProduction &&
-  process.env.ALLOW_ORIGINS === '*'
-) {
+if (isProduction && process.env.ALLOW_ORIGINS === '*') {
   console.warn(
     '⚠️  WARNING: ALLOW_ORIGINS is set to * (allow all) in production. ' +
-      'This is a security risk. Please specify allowed domains explicitly.'
+      'This is a security risk. Please specify allowed domains explicitly.',
   );
 }
 
