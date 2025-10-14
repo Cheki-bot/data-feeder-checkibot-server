@@ -524,27 +524,37 @@ The test suite includes 20+ tests covering:
 
 ## 📁 Project Structure
 
+The project follows a **modular architecture** for better scalability:
+
 ```
 src/
-├── app.js                    # Express app setup
-├── server.js                 # Server startup & DB initialization
+├── app.js                          # Express app setup
+├── server.js                       # Server startup & DB initialization
 ├── config/
-│   ├── index.js             # Environment configuration
-│   └── database.js          # MongoDB connection & setup
-├── routes/
-│   ├── index.js             # Main router
-│   ├── health.js            # Health check endpoint
-│   └── auth.js              # Authentication routes
-├── middleware/
-│   ├── errorHandler.js      # Error handling middleware
-│   └── auth.js              # JWT authentication middleware
-├── validators/
-│   └── auth.js              # Request validation schemas
-├── utils/
-│   └── auth.js              # Password hashing & JWT utilities
+│   ├── index.js                   # Environment configuration
+│   ├── database.js                # MongoDB connection & setup
+│   └── server.routes.js           # Centralized route registration
+├── modules/                        # ⭐ Feature-based modules
+│   ├── auth/                      # Authentication module
+│   │   ├── auth.controller.js    # Request handlers
+│   │   ├── auth.service.js       # Business logic
+│   │   ├── auth.routes.js        # Route definitions
+│   │   └── user.model.js         # Data models
+│   └── health/                    # Health check module
+│       ├── health.controller.js
+│       └── health.routes.js
+├── middleware/                     # Shared middleware
+│   ├── errorHandler.js            # Error handling
+│   └── auth.js                    # JWT authentication
+├── validators/                     # Shared validators
+│   └── auth.js                    # Request validation schemas
+├── utils/                          # Shared utilities
+│   └── auth.js                    # Password hashing & JWT utilities
 └── tests/
-    └── auth.test.js         # Authentication tests
+    └── auth.test.js               # Integration tests
 ```
+
+> 📚 **Learn More**: See [ARCHITECTURE.md](./ARCHITECTURE.md) for detailed information about the modular architecture, how to add new modules, and best practices.
 
 ---
 

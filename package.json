@@ -15,6 +15,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --cache --write .",
     "format:check": "prettier --check .",
+    "generate-secret": "node -e \"console.log('\\n🔐 JWT Secret (128 characters):\\n'); console.log(require('crypto').randomBytes(64).toString('hex')); console.log('\\n⚠️  Copy this secret to your .env file as JWT_SECRET\\n')\"",
     "prepare": "husky",
     "lint-staged": "lint-staged"
   },

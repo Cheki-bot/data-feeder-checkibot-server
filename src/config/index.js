@@ -57,17 +57,33 @@ validateEnvVar('JWT_SECRET', process.env.JWT_SECRET, {
   minLength: 32, // Minimum 32 characters for security
 });
 
-// Warn if using default/weak JWT secret
+// Validate JWT secret strength
 if (
   process.env.JWT_SECRET &&
   (process.env.JWT_SECRET.includes('change-this') ||
     process.env.JWT_SECRET.includes('example') ||
-    process.env.JWT_SECRET.length < 64)
+    process.env.JWT_SECRET.includes('your-super-secret'))
 ) {
-  console.warn(
-    '⚠️  WARNING: JWT_SECRET appears to be weak or default. ' +
-      "Generate a strong secret with: node -e \"console.log(require('crypto').randomBytes(64).toString('hex'))\"",
-  );
+  const message =
+    '❌ SECURITY ERROR: JWT_SECRET contains default/example values. ' +
+    "Generate a strong secret with: node -e \"console.log(require('crypto').randomBytes(64).toString('hex'))\"";
+  
+  if (isProduction) {
+    throw new Error(message + '\n🚫 Server will not start in production with weak secrets.');
+  } else {
+    console.warn('⚠️  ' + message);
+  }
+}
+
+// Enforce minimum length in production
+if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 64) {
+  const message = `JWT_SECRET is too short (${process.env.JWT_SECRET.length} characters). Minimum required: 64 characters for production security.`;
+  
+  if (isProduction) {
+    throw new Error(`❌ SECURITY ERROR: ${message}\n🚫 Server will not start in production with weak secrets.`);
+  } else {
+    console.warn(`⚠️  WARNING: ${message}`);
+  }
 }
 
 // Admin credentials validation
@@ -89,11 +105,21 @@ if (process.env.ADMIN_PASSWORD && process.env.ADMIN_PASSWORD.length < 12 && isPr
   );
 }
 
-// CORS validation for production
+// CORS validation - enforce in production
 if (isProduction && process.env.ALLOW_ORIGINS === '*') {
+  throw new Error(
+    '❌ SECURITY ERROR: ALLOW_ORIGINS is set to * (allow all) in production.\n' +
+      'This is a critical security risk. You must specify allowed domains explicitly.\n' +
+      'Example: ALLOW_ORIGINS=https://yourdomain.com,https://app.yourdomain.com\n' +
+      '🚫 Server will not start in production with insecure CORS settings.',
+  );
+}
+
+// Warn in development
+if (!isProduction && process.env.ALLOW_ORIGINS === '*') {
   console.warn(
-    '⚠️  WARNING: ALLOW_ORIGINS is set to * (allow all) in production. ' +
-      'This is a security risk. Please specify allowed domains explicitly.',
+    '⚠️  DEVELOPMENT MODE: ALLOW_ORIGINS is set to * (allow all). ' +
+      'Remember to specify allowed domains explicitly in production.',
   );
 }
 
