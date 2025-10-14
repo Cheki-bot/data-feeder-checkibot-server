@@ -67,7 +67,7 @@ if (
   const message =
     '❌ SECURITY ERROR: JWT_SECRET contains default/example values. ' +
     "Generate a strong secret with: node -e \"console.log(require('crypto').randomBytes(64).toString('hex'))\"";
-  
+
   if (isProduction) {
     throw new Error(message + '\n🚫 Server will not start in production with weak secrets.');
   } else {
@@ -78,9 +78,11 @@ if (
 // Enforce minimum length in production
 if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 64) {
   const message = `JWT_SECRET is too short (${process.env.JWT_SECRET.length} characters). Minimum required: 64 characters for production security.`;
-  
+
   if (isProduction) {
-    throw new Error(`❌ SECURITY ERROR: ${message}\n🚫 Server will not start in production with weak secrets.`);
+    throw new Error(
+      `❌ SECURITY ERROR: ${message}\n🚫 Server will not start in production with weak secrets.`,
+    );
   } else {
     console.warn(`⚠️  WARNING: ${message}`);
   }

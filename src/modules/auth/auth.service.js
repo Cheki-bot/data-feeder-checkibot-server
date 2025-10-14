@@ -104,7 +104,9 @@ export async function loginUser(db, email, password) {
       error.lockoutMinutes = LOCKOUT_MINUTES;
       throw error;
     } else {
-      await db.collection('users').updateOne({ email }, { $set: { failed_attempts: failedAttempts } });
+      await db
+        .collection('users')
+        .updateOne({ email }, { $set: { failed_attempts: failedAttempts } });
 
       const attemptsLeft = MAX_LOGIN_ATTEMPTS - failedAttempts;
       const error = new Error('INVALID_CREDENTIALS_WITH_ATTEMPTS');
