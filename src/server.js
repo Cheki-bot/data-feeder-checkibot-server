@@ -10,11 +10,11 @@ server.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
 
-process.on('unhandledRejection', (reason) => {
+process.on('unhandledRejection', reason => {
   console.error('Unhandled Rejection:', reason);
 });
 
-process.on('uncaughtException', (err) => {
+process.on('uncaughtException', err => {
   console.error('Uncaught Exception:', err);
   process.exit(1);
 });

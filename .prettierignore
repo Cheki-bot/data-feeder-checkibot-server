@@ -1,0 +1,5 @@
+# Ignored by Prettier
+node_modules
+coverage
+dist
+.husky
