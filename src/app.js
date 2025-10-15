@@ -3,6 +3,8 @@ import cors from 'cors';
 import morgan from 'morgan';
 import routes from './routes/index.js';
 import { notFoundHandler, errorHandler } from './middleware/errorHandler.js';
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './config/swagger.js';
 
 const app = express();
 
@@ -11,6 +13,11 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 app.use('/api', routes);
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get('/docs.json', (_req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
 
 app.use(notFoundHandler);
 app.use(errorHandler);
