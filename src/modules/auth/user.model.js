@@ -1,13 +1,12 @@
 /**
  * User Model
- * Represents a user in the system with authentication and authorization data
+ * Represents a user in the system with authentication data
  */
 
 /**
  * @typedef {Object} User
  * @property {string} email - User's email address (unique)
  * @property {string} password_hash - Hashed password
- * @property {string} role - User role ('User' or 'Admin')
  * @property {boolean} is_active - Account status
  * @property {Date} created_at - Account creation timestamp
  * @property {number} failed_attempts - Number of failed login attempts
@@ -17,7 +16,6 @@
 /**
  * @typedef {Object} UserResponse
  * @property {string} email
- * @property {string} role
  * @property {boolean} is_active
  * @property {Date} created_at
  * @property {number} failed_attempts
@@ -38,21 +36,15 @@ export function createUserResponse(user) {
  * Create a new user document
  * @param {string} email - User email
  * @param {string} passwordHash - Hashed password
- * @param {string} role - User role (default: 'User')
  * @returns {User} New user document
  */
-export function createUserDocument(email, passwordHash, role = 'User') {
+export function createUserDocument(email, passwordHash) {
   return {
     email,
     password_hash: passwordHash,
-    role,
     is_active: true,
     created_at: new Date(),
     failed_attempts: 0,
   };
 }
 
-export const UserRoles = {
-  USER: 'User',
-  ADMIN: 'Admin',
-};

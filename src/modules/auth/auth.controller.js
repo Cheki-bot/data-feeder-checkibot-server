@@ -11,11 +11,11 @@ export async function register(req, res) {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { email, password, role = 'User' } = req.body;
+  const { email, password } = req.body;
 
   try {
     const db = req.app.locals.db;
-    const user = await AuthService.registerUser(db, email, password, role);
+    const user = await AuthService.registerUser(db, email, password);
 
     res.status(201).json(user);
   } catch (error) {
@@ -87,99 +87,9 @@ export function getProfile(req, res) {
   res.json(req.currentUser);
 }
 
-/**
- * GET /api/auth/users
- * List all users (Admin only)
- */
-export async function listUsers(req, res) {
-  try {
-    const db = req.app.locals.db;
-    const users = await AuthService.getAllUsers(db);
-
-    res.json({ users, count: users.length });
-  } catch (error) {
-    console.error('List users error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-}
-
-/**
- * PATCH /api/auth/users/:email/deactivate
- * Deactivate a user account (Admin only)
- */
-export async function deactivateUserAccount(req, res) {
-  const { email } = req.params;
-
-  try {
-    const db = req.app.locals.db;
-    const success = await AuthService.deactivateUser(db, email);
-
-    if (!success) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    res.json({ message: `User ${email} has been deactivated` });
-  } catch (error) {
-    console.error('Deactivate user error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-}
-
-/**
- * PATCH /api/auth/users/:email/activate
- * Activate a previously deactivated user account (Admin only)
- */
-export async function activateUserAccount(req, res) {
-  const { email } = req.params;
-
-  try {
-    const db = req.app.locals.db;
-    const success = await AuthService.activateUser(db, email);
-
-    if (!success) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    res.json({ message: `User ${email} has been activated` });
-  } catch (error) {
-    console.error('Activate user error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-}
-
-/**
- * DELETE /api/auth/users/:email
- * Permanently delete a user account (Admin only)
- */
-export async function deleteUserAccount(req, res) {
-  const { email } = req.params;
-
-  try {
-    const db = req.app.locals.db;
-
-    if (email === req.user.sub) {
-      return res.status(400).json({ message: 'Cannot delete your own account' });
-    }
-
-    const success = await AuthService.deleteUser(db, email);
-
-    if (!success) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    res.json({ message: `User ${email} has been deleted permanently` });
-  } catch (error) {
-    console.error('Delete user error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-}
-
 export default {
   register,
   login,
   getProfile,
-  listUsers,
-  deactivateUserAccount,
-  activateUserAccount,
-  deleteUserAccount,
 };
+

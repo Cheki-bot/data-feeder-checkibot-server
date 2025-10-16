@@ -10,17 +10,16 @@ const BOLIVIA_TIMEZONE_OFFSET = -4; // UTC-4
  * @param {Db} db - MongoDB database instance
  * @param {string} email - User email
  * @param {string} password - User password (plain text)
- * @param {string} role - User role (default: 'User')
  * @returns {Promise<Object>} User response without password
  */
-export async function registerUser(db, email, password, role = 'User') {
+export async function registerUser(db, email, password) {
   const existingUser = await db.collection('users').findOne({ email });
   if (existingUser) {
     throw new Error('EMAIL_ALREADY_EXISTS');
   }
 
   const passwordHash = await hashPassword(password);
-  const userDoc = createUserDocument(email, passwordHash, role);
+  const userDoc = createUserDocument(email, passwordHash);
 
   await db.collection('users').insertOne(userDoc);
 
@@ -128,7 +127,6 @@ export async function loginUser(db, email, password) {
   const token = generateToken(
     {
       sub: user.email,
-      role: user.role,
     },
     '24h',
   );
@@ -156,61 +154,4 @@ export async function getUserByEmail(db, email) {
   );
 
   return user;
-}
-
-/**
- * Get all users (without passwords)
- * @param {Db} db - MongoDB database instance
- * @returns {Promise<Array>} List of users
- */
-export async function getAllUsers(db) {
-  const users = await db
-    .collection('users')
-    .find(
-      {},
-      {
-        projection: {
-          password_hash: 0,
-        },
-      },
-    )
-    .toArray();
-
-  return users;
-}
-
-/**
- * Deactivate user account
- * @param {Db} db - MongoDB database instance
- * @param {string} email - User email
- * @returns {Promise<boolean>} Success status
- */
-export async function deactivateUser(db, email) {
-  const result = await db.collection('users').updateOne({ email }, { $set: { is_active: false } });
-
-  return result.matchedCount > 0;
-}
-
-/**
- * Activate user account
- * @param {Db} db - MongoDB database instance
- * @param {string} email - User email
- * @returns {Promise<boolean>} Success status
- */
-export async function activateUser(db, email) {
-  const result = await db.collection('users').updateOne({ email }, { $set: { is_active: true } });
-
-  return result.matchedCount > 0;
-}
-
-/**
- * Delete user account
- * @param {Db} db - MongoDB database instance
- * @param {string} email - User email
- * @returns {Promise<boolean>} Success status
- */
-export async function deleteUser(db, email) {
-  const result = await db.collection('users').deleteOne({ email });
-
-  return result.deletedCount > 0;
 }

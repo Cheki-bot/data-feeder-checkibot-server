@@ -25,17 +25,6 @@ export function authenticateToken(req, res, next) {
 }
 
 /**
- * Middleware to verify that the authenticated user is an Admin
- * Must be used after authenticateToken middleware
- */
-export function requireAdmin(req, res, next) {
-  if (!req.user || req.user.role !== 'Admin') {
-    return res.status(403).json({ message: 'Admin access required. Insufficient permissions.' });
-  }
-  next();
-}
-
-/**
  * Middleware to fetch the complete user document from database
  * Must be used after authenticateToken middleware
  * Attaches full user object to req.currentUser
@@ -62,3 +51,4 @@ export async function getCurrentUser(req, res, next) {
     return res.status(500).json({ message: 'Database error', error: error.message });
   }
 }
+
