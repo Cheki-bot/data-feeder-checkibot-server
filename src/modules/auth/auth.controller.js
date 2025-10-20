@@ -3,7 +3,7 @@ import * as AuthService from './auth.service.js';
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 60;
-const BOLIVIA_TIMEZONE_OFFSET = -4; // UTC-4
+const BOLIVIA_TIMEZONE_OFFSET = -4;
 
 /**
  * POST /api/auth/register
@@ -61,7 +61,6 @@ export async function login(req, res) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Check if account is locked
     if (user.lockout_until) {
       const now = new Date();
       const lockoutUntil = new Date(user.lockout_until);
@@ -78,7 +77,6 @@ export async function login(req, res) {
           message: `Account locked due to too many failed attempts. Try again in ${minutesRemaining} minutes (unlocks at ${lockoutBoliviaTime.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })})`,
         });
       } else {
-        // Lockout period has expired, reset failed attempts
         await db.collection('users').updateOne(
           { email },
           {
@@ -89,10 +87,8 @@ export async function login(req, res) {
       }
     }
 
-    // Attempt login
     const result = await AuthService.loginUser(db, email, password);
 
-    // Login successful - reset failed attempts
     await db.collection('users').updateOne(
       { email },
       {
