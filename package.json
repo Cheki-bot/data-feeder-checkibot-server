@@ -8,14 +8,10 @@
   "scripts": {
     "start": "NODE_ENV=production node src/server.js",
     "dev": "nodemon --watch src src/server.js",
-    "test": "NODE_ENV=test node --experimental-vm-modules node_modules/jest/bin/jest.js --detectOpenHandles",
-    "test:watch": "NODE_ENV=test node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
-    "test:coverage": "NODE_ENV=test node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --cache --write .",
     "format:check": "prettier --check .",
-    "generate-secret": "node -e \"console.log('\\n🔐 JWT Secret (128 characters):\\n'); console.log(require('crypto').randomBytes(64).toString('hex')); console.log('\\n⚠️  Copy this secret to your .env file as JWT_SECRET\\n')\"",
     "prepare": "husky",
     "lint-staged": "lint-staged"
   },
@@ -35,21 +31,19 @@
     "express-validator": "^7.2.1",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.20.0",
-    "morgan": "^1.10.1"
+    "morgan": "^1.10.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
-    "@types/jest": "^30.0.0",
     "eslint": "^9.36.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^16.4.0",
     "husky": "^9.1.7",
-    "jest": "^30.2.0",
     "lint-staged": "^16.2.0",
-    "mongodb-memory-server": "^10.2.3",
     "nodemon": "^3.1.10",
-    "prettier": "^3.6.2",
-    "supertest": "^7.1.4"
+    "prettier": "^3.6.2"
   },
   "lint-staged": {
     "**/*.{js,jsx,ts,tsx}": [
@@ -57,21 +51,6 @@
     ],
     "**/*.{js,jsx,ts,tsx,md,json,yml,yaml}": [
       "prettier --write"
-    ]
-  },
-  "jest": {
-    "testEnvironment": "node",
-    "transform": {},
-    "testMatch": [
-      "**/tests/**/*.test.js"
-    ],
-    "coveragePathIgnorePatterns": [
-      "/node_modules/"
-    ],
-    "collectCoverageFrom": [
-      "src/**/*.js",
-      "!src/server.js",
-      "!src/tests/**"
     ]
   }
 }

@@ -3,7 +3,7 @@ import * as AuthService from './auth.service.js';
 
 /**
  * POST /api/auth/register
- * Register a new user with email and password
+ * Register a new user with username, email and password
  */
 export async function register(req, res) {
   const errors = validationResult(req);
@@ -11,18 +11,25 @@ export async function register(req, res) {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { email, password } = req.body;
+  const { username, email, password, confirmPassword } = req.body;
 
   try {
     const db = req.app.locals.db;
-    const user = await AuthService.registerUser(db, email, password);
+    const user = await AuthService.registerUser(db, username, email, password);
 
-    res.status(201).json(user);
+    res.status(201).json({
+      message: 'User registered successfully',
+      user,
+    });
   } catch (error) {
     console.error('Registration error:', error);
 
     if (error.message === 'EMAIL_ALREADY_EXISTS') {
       return res.status(400).json({ message: 'Email already registered' });
+    }
+
+    if (error.message === 'USERNAME_ALREADY_EXISTS') {
+      return res.status(400).json({ message: 'Username already taken' });
     }
 
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -45,34 +52,15 @@ export async function login(req, res) {
     const db = req.app.locals.db;
     const result = await AuthService.loginUser(db, email, password);
 
-    res.json(result);
+    res.json({
+      message: 'Login successful',
+      ...result,
+    });
   } catch (error) {
     console.error('Login error:', error);
 
     if (error.message === 'INVALID_CREDENTIALS') {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
-
-    if (error.message === 'ACCOUNT_LOCKED') {
-      return res.status(403).json({
-        message: `Account locked due to too many failed attempts. Try again in ${error.minutesRemaining} minutes (unlocks at ${error.unlockTime})`,
-      });
-    }
-
-    if (error.message === 'ACCOUNT_LOCKED_MAX_ATTEMPTS') {
-      return res.status(403).json({
-        message: `Account locked due to too many failed attempts. Try again in ${error.lockoutMinutes} minutes.`,
-      });
-    }
-
-    if (error.message === 'INVALID_CREDENTIALS_WITH_ATTEMPTS') {
-      return res.status(401).json({
-        message: `Invalid credentials. ${error.attemptsLeft} ${error.attemptsLeft === 1 ? 'attempt' : 'attempts'} remaining.`,
-      });
-    }
-
-    if (error.message === 'ACCOUNT_DEACTIVATED') {
-      return res.status(403).json({ message: 'Account is deactivated. Contact administrator.' });
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
 
     res.status(500).json({ message: 'Server error', error: error.message });

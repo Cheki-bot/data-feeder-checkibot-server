@@ -1,12 +1,8 @@
 import { decodeToken } from '../utils/auth.js';
 
-/**
- * Middleware to authenticate JWT token from Authorization header
- * Extracts token from "Bearer TOKEN" format and validates it
- */
 export function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
     return res.status(401).json({ message: 'No token provided' });
@@ -24,27 +20,18 @@ export function authenticateToken(req, res, next) {
   }
 }
 
-/**
- * Middleware to fetch the complete user document from database
- * Must be used after authenticateToken middleware
- * Attaches full user object to req.currentUser
- */
 export async function getCurrentUser(req, res, next) {
   try {
     const db = req.app.locals.db;
-    const user = await db.collection('users').findOne({
-      email: req.user.sub,
-    });
+    const user = await db.collection('users').findOne(
+      { email: req.user.sub },
+      { projection: { password_hash: 0 } }
+    );
 
     if (!user) {
       return res.status(401).json({ message: 'User not found' });
     }
 
-    if (!user.is_active) {
-      return res.status(403).json({ message: 'Account is deactivated. Contact administrator.' });
-    }
-
-    delete user.password_hash;
     req.currentUser = user;
     next();
   } catch (error) {

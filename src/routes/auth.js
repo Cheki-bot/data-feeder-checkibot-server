@@ -2,7 +2,7 @@ import express from 'express';
 import { validationResult } from 'express-validator';
 import { hashPassword, verifyPassword, generateToken } from '../utils/auth.js';
 import { registerValidation, loginValidation } from '../validators/auth.js';
-import { authenticateToken, requireAdmin, getCurrentUser } from '../middleware/auth.js';
+import { authenticateToken, getCurrentUser } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -175,109 +175,5 @@ router.get('/me', authenticateToken, getCurrentUser, (req, res) => {
   res.json(req.currentUser);
 });
 
-/**
- * PATCH /api/auth/users/:email/deactivate
- * Deactivate a user account (Admin only)
- * User will not be able to login until reactivated
- */
-router.patch('/users/:email/deactivate', authenticateToken, requireAdmin, async (req, res) => {
-  const { email } = req.params;
-
-  try {
-    const db = req.app.locals.db;
-
-    const result = await db
-      .collection('users')
-      .updateOne({ email }, { $set: { is_active: false } });
-
-    if (result.matchedCount === 0) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    res.json({ message: `User ${email} has been deactivated` });
-  } catch (error) {
-    console.error('Deactivate user error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-/**
- * PATCH /api/auth/users/:email/activate
- * Activate a previously deactivated user account (Admin only)
- */
-router.patch('/users/:email/activate', authenticateToken, requireAdmin, async (req, res) => {
-  const { email } = req.params;
-
-  try {
-    const db = req.app.locals.db;
-
-    const result = await db.collection('users').updateOne({ email }, { $set: { is_active: true } });
-
-    if (result.matchedCount === 0) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    res.json({ message: `User ${email} has been activated` });
-  } catch (error) {
-    console.error('Activate user error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-/**
- * DELETE /api/auth/users/:email
- * Permanently delete a user account (Admin only)
- * This action cannot be undone
- */
-router.delete('/users/:email', authenticateToken, requireAdmin, async (req, res) => {
-  const { email } = req.params;
-
-  try {
-    const db = req.app.locals.db;
-
-    if (email === req.user.sub) {
-      return res.status(400).json({ message: 'Cannot delete your own account' });
-    }
-
-    const result = await db.collection('users').deleteOne({ email });
-
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    res.json({ message: `User ${email} has been deleted permanently` });
-  } catch (error) {
-    console.error('Delete user error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-/**
- * GET /api/auth/users
- * List all users (Admin only)
- * Returns users without password hashes
- */
-router.get('/users', authenticateToken, requireAdmin, async (req, res) => {
-  try {
-    const db = req.app.locals.db;
-
-    const users = await db
-      .collection('users')
-      .find(
-        {},
-        {
-          projection: {
-            password_hash: 0,
-          },
-        },
-      )
-      .toArray();
-
-    res.json({ users, count: users.length });
-  } catch (error) {
-    console.error('List users error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
 
 export default router;

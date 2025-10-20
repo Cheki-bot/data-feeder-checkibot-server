@@ -1,24 +1,21 @@
 /**
  * User Model
- * Represents a user in the system with authentication data
+ * Represents a user in the system with basic authentication
  */
 
 /**
  * @typedef {Object} User
+ * @property {string} username - User's username (unique)
  * @property {string} email - User's email address (unique)
  * @property {string} password_hash - Hashed password
- * @property {boolean} is_active - Account status
  * @property {Date} created_at - Account creation timestamp
- * @property {number} failed_attempts - Number of failed login attempts
- * @property {Date} [lockout_until] - Account lockout timestamp
  */
 
 /**
  * @typedef {Object} UserResponse
+ * @property {string} username
  * @property {string} email
- * @property {boolean} is_active
  * @property {Date} created_at
- * @property {number} failed_attempts
  */
 
 /**
@@ -34,17 +31,17 @@ export function createUserResponse(user) {
 
 /**
  * Create a new user document
+ * @param {string} username - User username
  * @param {string} email - User email
  * @param {string} passwordHash - Hashed password
  * @returns {User} New user document
  */
-export function createUserDocument(email, passwordHash) {
+export function createUserDocument(username, email, passwordHash) {
   return {
+    username,
     email,
     password_hash: passwordHash,
-    is_active: true,
     created_at: new Date(),
-    failed_attempts: 0,
   };
 }
 
