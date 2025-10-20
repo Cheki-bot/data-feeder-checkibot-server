@@ -23,10 +23,9 @@ export function authenticateToken(req, res, next) {
 export async function getCurrentUser(req, res, next) {
   try {
     const db = req.app.locals.db;
-    const user = await db.collection('users').findOne(
-      { email: req.user.sub },
-      { projection: { password_hash: 0 } }
-    );
+    const user = await db
+      .collection('users')
+      .findOne({ email: req.user.sub }, { projection: { password_hash: 0 } });
 
     if (!user) {
       return res.status(401).json({ message: 'User not found' });
@@ -38,4 +37,3 @@ export async function getCurrentUser(req, res, next) {
     return res.status(500).json({ message: 'Database error', error: error.message });
   }
 }
-

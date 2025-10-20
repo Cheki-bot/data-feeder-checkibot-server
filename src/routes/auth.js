@@ -175,5 +175,4 @@ router.get('/me', authenticateToken, getCurrentUser, (req, res) => {
   res.json(req.currentUser);
 });
 
-
 export default router;

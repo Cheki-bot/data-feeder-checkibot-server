@@ -44,4 +44,3 @@ export function createUserDocument(username, email, passwordHash) {
     created_at: new Date(),
   };
 }
-

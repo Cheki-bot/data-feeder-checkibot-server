@@ -11,7 +11,7 @@ export async function register(req, res) {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { username, email, password, confirmPassword } = req.body;
+  const { username, email, password } = req.body;
 
   try {
     const db = req.app.locals.db;
@@ -80,4 +80,3 @@ export default {
   login,
   getProfile,
 };
-

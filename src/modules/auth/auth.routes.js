@@ -13,4 +13,3 @@ router.post('/login', loginValidation, AuthController.login);
 router.get('/me', authenticateToken, getCurrentUser, AuthController.getProfile);
 
 export default router;
-
