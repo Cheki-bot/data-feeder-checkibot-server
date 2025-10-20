@@ -1,6 +1,10 @@
 import { validationResult } from 'express-validator';
 import * as AuthService from './auth.service.js';
 
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_MINUTES = 60;
+const BOLIVIA_TIMEZONE_OFFSET = -4; // UTC-4
+
 /**
  * POST /api/auth/register
  * Register a new user with username, email and password
@@ -39,6 +43,7 @@ export async function register(req, res) {
 /**
  * POST /api/auth/login
  * Authenticate user and return JWT token
+ * Implements account lockout after MAX_LOGIN_ATTEMPTS failed attempts
  */
 export async function login(req, res) {
   const errors = validationResult(req);
@@ -50,7 +55,51 @@ export async function login(req, res) {
 
   try {
     const db = req.app.locals.db;
+    const user = await db.collection('users').findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Check if account is locked
+    if (user.lockout_until) {
+      const now = new Date();
+      const lockoutUntil = new Date(user.lockout_until);
+
+      if (now < lockoutUntil) {
+        const timeRemainingMs = lockoutUntil - now;
+        const minutesRemaining = Math.ceil(timeRemainingMs / 1000 / 60);
+
+        const lockoutBoliviaTime = new Date(
+          lockoutUntil.getTime() + BOLIVIA_TIMEZONE_OFFSET * 60 * 60 * 1000,
+        );
+
+        return res.status(403).json({
+          message: `Account locked due to too many failed attempts. Try again in ${minutesRemaining} minutes (unlocks at ${lockoutBoliviaTime.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })})`,
+        });
+      } else {
+        // Lockout period has expired, reset failed attempts
+        await db.collection('users').updateOne(
+          { email },
+          {
+            $set: { failed_attempts: 0 },
+            $unset: { lockout_until: '' },
+          },
+        );
+      }
+    }
+
+    // Attempt login
     const result = await AuthService.loginUser(db, email, password);
+
+    // Login successful - reset failed attempts
+    await db.collection('users').updateOne(
+      { email },
+      {
+        $set: { failed_attempts: 0 },
+        $unset: { lockout_until: '' },
+      },
+    );
 
     res.json({
       message: 'Login successful',
@@ -60,7 +109,41 @@ export async function login(req, res) {
     console.error('Login error:', error);
 
     if (error.message === 'INVALID_CREDENTIALS') {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      const db = req.app.locals.db;
+      const user = await db.collection('users').findOne({ email: req.body.email });
+
+      if (user) {
+        const failedAttempts = (user.failed_attempts || 0) + 1;
+
+        if (failedAttempts >= MAX_LOGIN_ATTEMPTS) {
+          const lockoutUntil = new Date(Date.now() + LOCKOUT_MINUTES * 60 * 1000);
+
+          await db.collection('users').updateOne(
+            { email: req.body.email },
+            {
+              $set: {
+                failed_attempts: failedAttempts,
+                lockout_until: lockoutUntil,
+              },
+            },
+          );
+
+          return res.status(403).json({
+            message: `Account locked due to too many failed attempts. Try again in ${LOCKOUT_MINUTES} minutes.`,
+          });
+        } else {
+          await db
+            .collection('users')
+            .updateOne({ email: req.body.email }, { $set: { failed_attempts: failedAttempts } });
+
+          const attemptsLeft = MAX_LOGIN_ATTEMPTS - failedAttempts;
+          return res.status(401).json({
+            message: `Invalid credentials. ${attemptsLeft} ${attemptsLeft === 1 ? 'attempt' : 'attempts'} remaining.`,
+          });
+        }
+      }
+
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     res.status(500).json({ message: 'Server error', error: error.message });

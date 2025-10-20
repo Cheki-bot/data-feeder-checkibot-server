@@ -10,13 +10,11 @@ import { createUserDocument, createUserResponse } from './user.model.js';
  * @returns {Promise<Object>} User response without password
  */
 export async function registerUser(db, username, email, password) {
-  // Check if username already exists
   const existingUsername = await db.collection('users').findOne({ username });
   if (existingUsername) {
     throw new Error('USERNAME_ALREADY_EXISTS');
   }
 
-  // Check if email already exists
   const existingEmail = await db.collection('users').findOne({ email });
   if (existingEmail) {
     throw new Error('EMAIL_ALREADY_EXISTS');
@@ -24,6 +22,8 @@ export async function registerUser(db, username, email, password) {
 
   const passwordHash = await hashPassword(password);
   const userDoc = createUserDocument(username, email, passwordHash);
+
+  userDoc.failed_attempts = 0;
 
   await db.collection('users').insertOne(userDoc);
 
@@ -44,14 +44,12 @@ export async function loginUser(db, email, password) {
     throw new Error('INVALID_CREDENTIALS');
   }
 
-  // Verify password
   const isValidPassword = await verifyPassword(password, user.password_hash);
 
   if (!isValidPassword) {
     throw new Error('INVALID_CREDENTIALS');
   }
 
-  // Generate token
   const token = generateToken(
     {
       sub: user.email,
