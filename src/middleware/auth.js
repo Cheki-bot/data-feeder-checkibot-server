@@ -23,9 +23,10 @@ export function authenticateToken(req, res, next) {
 export async function getCurrentUser(req, res, next) {
   try {
     const db = req.app.locals.db;
+    const normalizedEmail = req.user.sub.toLowerCase().trim();
     const user = await db
       .collection('users')
-      .findOne({ email: req.user.sub }, { projection: { password_hash: 0 } });
+      .findOne({ email: normalizedEmail }, { projection: { password_hash: 0 } });
 
     if (!user) {
       return res.status(401).json({ message: 'User not found' });

@@ -51,10 +51,11 @@ export async function login(req, res) {
   }
 
   const { email, password } = req.body;
+  const normalizedEmail = email.toLowerCase().trim();
 
   try {
     const db = req.app.locals.db;
-    const user = await db.collection('users').findOne({ email });
+    const user = await db.collection('users').findOne({ email: normalizedEmail });
 
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
@@ -74,7 +75,7 @@ export async function login(req, res) {
         });
       } else {
         await db.collection('users').updateOne(
-          { email },
+          { email: normalizedEmail },
           {
             $set: { failed_attempts: 0 },
             $unset: { lockout_until: '' },
@@ -86,7 +87,7 @@ export async function login(req, res) {
     const result = await AuthService.loginUser(db, email, password);
 
     await db.collection('users').updateOne(
-      { email },
+      { email: normalizedEmail },
       {
         $set: { failed_attempts: 0 },
         $unset: { lockout_until: '' },
@@ -102,7 +103,8 @@ export async function login(req, res) {
 
     if (error.message === 'INVALID_CREDENTIALS') {
       const db = req.app.locals.db;
-      const user = await db.collection('users').findOne({ email: req.body.email });
+      const normalizedEmail = req.body.email.toLowerCase().trim();
+      const user = await db.collection('users').findOne({ email: normalizedEmail });
 
       if (!user) {
         return res.status(401).json({ message: 'Invalid credentials' });
@@ -114,7 +116,7 @@ export async function login(req, res) {
         const lockoutUntil = new Date(Date.now() + LOCKOUT_MINUTES * 60 * 1000);
 
         await db.collection('users').updateOne(
-          { email: req.body.email },
+          { email: normalizedEmail },
           {
             $set: {
               failed_attempts: failedAttempts,
@@ -130,7 +132,7 @@ export async function login(req, res) {
 
       await db
         .collection('users')
-        .updateOne({ email: req.body.email }, { $set: { failed_attempts: failedAttempts } });
+        .updateOne({ email: normalizedEmail }, { $set: { failed_attempts: failedAttempts } });
 
       const attemptsLeft = MAX_LOGIN_ATTEMPTS - failedAttempts;
       return res.status(401).json({

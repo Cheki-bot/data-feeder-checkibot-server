@@ -10,18 +10,20 @@ import { createUserDocument, createUserResponse } from './user.model.js';
  * @returns {Promise<Object>} User response without password
  */
 export async function registerUser(db, username, email, password) {
+  const normalizedEmail = email.toLowerCase().trim();
+
   const existingUsername = await db.collection('users').findOne({ username });
   if (existingUsername) {
     throw new Error('USERNAME_ALREADY_EXISTS');
   }
 
-  const existingEmail = await db.collection('users').findOne({ email });
+  const existingEmail = await db.collection('users').findOne({ email: normalizedEmail });
   if (existingEmail) {
     throw new Error('EMAIL_ALREADY_EXISTS');
   }
 
   const passwordHash = await hashPassword(password);
-  const userDoc = createUserDocument(username, email, passwordHash);
+  const userDoc = createUserDocument(username, normalizedEmail, passwordHash);
 
   userDoc.failed_attempts = 0;
 
@@ -38,7 +40,9 @@ export async function registerUser(db, username, email, password) {
  * @returns {Promise<Object>} Access token and user info
  */
 export async function loginUser(db, email, password) {
-  const user = await db.collection('users').findOne({ email });
+  const normalizedEmail = email.toLowerCase().trim();
+
+  const user = await db.collection('users').findOne({ email: normalizedEmail });
 
   if (!user) {
     throw new Error('INVALID_CREDENTIALS');
@@ -75,8 +79,10 @@ export async function loginUser(db, email, password) {
  * @returns {Promise<Object|null>} User without password
  */
 export async function getUserByEmail(db, email) {
+  const normalizedEmail = email.toLowerCase().trim();
+
   const user = await db.collection('users').findOne(
-    { email },
+    { email: normalizedEmail },
     {
       projection: {
         password_hash: 0,
