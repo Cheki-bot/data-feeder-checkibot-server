@@ -3,7 +3,6 @@ import * as AuthService from './auth.service.js';
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 60;
-const BOLIVIA_TIMEZONE_OFFSET = -4;
 
 /**
  * POST /api/auth/register
@@ -69,12 +68,9 @@ export async function login(req, res) {
         const timeRemainingMs = lockoutUntil - now;
         const minutesRemaining = Math.ceil(timeRemainingMs / 1000 / 60);
 
-        const lockoutBoliviaTime = new Date(
-          lockoutUntil.getTime() + BOLIVIA_TIMEZONE_OFFSET * 60 * 60 * 1000,
-        );
-
         return res.status(403).json({
-          message: `Account locked due to too many failed attempts. Try again in ${minutesRemaining} minutes (unlocks at ${lockoutBoliviaTime.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })})`,
+          message: `Account locked due to too many failed attempts. Try again in ${minutesRemaining} minutes.`,
+          lockout_until: lockoutUntil.toISOString(),
         });
       } else {
         await db.collection('users').updateOne(
