@@ -108,38 +108,38 @@ export async function login(req, res) {
       const db = req.app.locals.db;
       const user = await db.collection('users').findOne({ email: req.body.email });
 
-      if (user) {
-        const failedAttempts = (user.failed_attempts || 0) + 1;
-
-        if (failedAttempts >= MAX_LOGIN_ATTEMPTS) {
-          const lockoutUntil = new Date(Date.now() + LOCKOUT_MINUTES * 60 * 1000);
-
-          await db.collection('users').updateOne(
-            { email: req.body.email },
-            {
-              $set: {
-                failed_attempts: failedAttempts,
-                lockout_until: lockoutUntil,
-              },
-            },
-          );
-
-          return res.status(403).json({
-            message: `Account locked due to too many failed attempts. Try again in ${LOCKOUT_MINUTES} minutes.`,
-          });
-        } else {
-          await db
-            .collection('users')
-            .updateOne({ email: req.body.email }, { $set: { failed_attempts: failedAttempts } });
-
-          const attemptsLeft = MAX_LOGIN_ATTEMPTS - failedAttempts;
-          return res.status(401).json({
-            message: `Invalid credentials. ${attemptsLeft} ${attemptsLeft === 1 ? 'attempt' : 'attempts'} remaining.`,
-          });
-        }
+      if (!user) {
+        return res.status(401).json({ message: 'Invalid credentials' });
       }
 
-      return res.status(401).json({ message: 'Invalid credentials' });
+      const failedAttempts = (user.failed_attempts || 0) + 1;
+
+      if (failedAttempts >= MAX_LOGIN_ATTEMPTS) {
+        const lockoutUntil = new Date(Date.now() + LOCKOUT_MINUTES * 60 * 1000);
+
+        await db.collection('users').updateOne(
+          { email: req.body.email },
+          {
+            $set: {
+              failed_attempts: failedAttempts,
+              lockout_until: lockoutUntil,
+            },
+          },
+        );
+
+        return res.status(403).json({
+          message: `Account locked due to too many failed attempts. Try again in ${LOCKOUT_MINUTES} minutes.`,
+        });
+      }
+
+      await db
+        .collection('users')
+        .updateOne({ email: req.body.email }, { $set: { failed_attempts: failedAttempts } });
+
+      const attemptsLeft = MAX_LOGIN_ATTEMPTS - failedAttempts;
+      return res.status(401).json({
+        message: `Invalid credentials. ${attemptsLeft} ${attemptsLeft === 1 ? 'attempt' : 'attempts'} remaining.`,
+      });
     }
 
     res.status(500).json({ message: 'Server error', error: error.message });
