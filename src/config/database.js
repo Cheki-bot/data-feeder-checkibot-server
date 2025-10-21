@@ -11,20 +11,15 @@ let dbConnection = null;
  */
 export async function initializeDatabase() {
   try {
-    console.log('Connecting to MongoDB...');
-
     const client = new MongoClient(env.MONGO_URI);
     await client.connect();
 
     const db = client.db(env.MONGO_DB_NAME);
     dbConnection = db;
 
-    console.log(`✓ Connected to MongoDB database: ${env.MONGO_DB_NAME}`);
-
     // Create unique indexes
     await db.collection('users').createIndex({ email: 1 }, { unique: true });
     await db.collection('users').createIndex({ username: 1 }, { unique: true });
-    console.log('✓ Created unique indexes on users collection');
 
     return db;
   } catch (error) {
@@ -48,6 +43,5 @@ export async function closeDatabase() {
   if (dbConnection) {
     await dbConnection.client.close();
     dbConnection = null;
-    console.log('✓ Database connection closed');
   }
 }
