@@ -149,9 +149,3 @@ export async function login(req, res) {
 export function getProfile(req, res) {
   res.json(req.currentUser);
 }
-
-export default {
-  register,
-  login,
-  getProfile,
-};
