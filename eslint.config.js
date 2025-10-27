@@ -25,6 +25,15 @@ export default [
       'prefer-const': 'warn',
     },
   },
+  // Jest test files configuration
+  {
+    files: ['**/*.test.js', '**/*.spec.js'],
+    languageOptions: {
+      globals: {
+        ...globals.jest,
+      },
+    },
+  },
   // Disable formatting-related rules in favor of Prettier
   {
     rules: {
