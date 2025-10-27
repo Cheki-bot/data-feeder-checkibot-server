@@ -1,11 +1,7 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 import path from 'path';
-import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const options = {
+const options: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.1.0',
     info: {
@@ -20,7 +16,7 @@ const options = {
       },
     ],
   },
-  apis: [path.join(__dirname, '../routes/**/*.js')],
+  apis: [path.join(__dirname, '../routes/**/*.ts')],
 };
 
 const swaggerSpec = swaggerJsdoc(options);
