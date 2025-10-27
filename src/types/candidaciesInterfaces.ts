@@ -1,18 +1,18 @@
 export enum CandidacyStatus {
-  ACTIVE = "habilitado",
-  INACTIVE = "inhabilitado",
-  WITHDRAWN = "se retiró"
+  ACTIVE = 'habilitado',
+  INACTIVE = 'inhabilitado',
+  WITHDRAWN = 'se retiró',
 }
 
 export enum ElectionStatus {
-  ACTIVE = "active",
-  COMPLETED = "completed",
-  UPCOMING = "upcoming"
+  ACTIVE = 'active',
+  COMPLETED = 'completed',
+  UPCOMING = 'upcoming',
 }
 
 export enum ElectionRound {
-  FIRST_ROUND = "primera vuelta",
-  SECOND_ROUND = "segunda vuelta"
+  FIRST_ROUND = 'primera vuelta',
+  SECOND_ROUND = 'segunda vuelta',
 }
 
 export interface IPolitician {
