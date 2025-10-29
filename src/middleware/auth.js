@@ -45,6 +45,7 @@ export async function getCurrentUser(req, res, next) {
  * @param {...string} roles - Allowed roles
  * @returns {Function} Express middleware
  */
+
 export function requireRole(...roles) {
   return (req, res, next) => {
     if (!req.currentUser) {
@@ -67,6 +68,7 @@ export function requireRole(...roles) {
  * Middleware to check if user is admin
  * @returns {Function} Express middleware
  */
+
 export function requireAdmin(req, res, next) {
   return requireRole(ROLES.ADMIN)(req, res, next);
 }
@@ -76,6 +78,7 @@ export function requireAdmin(req, res, next) {
  * @param {Function} getResourceEmail - Function to extract email from request
  * @returns {Function} Express middleware
  */
+
 export function isOwnerOrAdmin(getResourceEmail) {
   return (req, res, next) => {
     if (!req.currentUser) {

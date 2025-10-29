@@ -1,5 +1,7 @@
 import { MongoClient } from 'mongodb';
-import { env } from './index';
+import { env } from './index.js';
+import { hashPassword } from '../utils/auth.js';
+import { ROLES } from '../constants/roles.js';
 
 let dbConnection = null;
 
@@ -20,6 +22,7 @@ export async function initializeDatabase() {
     // Create unique indexes
     await db.collection('users').createIndex({ email: 1 }, { unique: true });
     await db.collection('users').createIndex({ username: 1 }, { unique: true });
+    await createDefaultAdmin(db);
 
     return db;
   } catch (error) {
@@ -43,5 +46,38 @@ export async function closeDatabase() {
   if (dbConnection) {
     await dbConnection.client.close();
     dbConnection = null;
+  }
+}
+
+/**
+ * Create default admin user if it doesn't exist
+ * @param {Db} db - MongoDB database instance
+ */
+
+async function createDefaultAdmin(db) {
+  try {
+    const adminEmail = env.ADMIN_EMAIL || 'admin@checkibot.com';
+    const adminPassword = env.ADMIN_PASSWORD || 'Admin123!';
+    const existingAdmin = await db.collection('users').findOne({ email: adminEmail });
+
+    if (existingAdmin) return;
+
+    const passwordHash = await hashPassword(adminPassword);
+    const now = new Date();
+
+    const adminUser = {
+      username: 'admin',
+      email: adminEmail,
+      password_hash: passwordHash,
+      role: ROLES.ADMIN,
+      is_active: true,
+      created_at: now,
+      updated_at: now,
+      failed_attempts: 0,
+    };
+
+    await db.collection('users').insertOne(adminUser);
+  } catch (error) {
+    console.error('Failed to create default admin:', error);
   }
 }
