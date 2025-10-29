@@ -1,6 +1,8 @@
+import { DEFAULT_ROLE } from '../../constants/roles.js';
+
 /**
  * User Model
- * Represents a user in the system with basic authentication
+ * Represents a user in the system with basic authentication and role-based access
  */
 
 /**
@@ -8,14 +10,20 @@
  * @property {string} username - User's username (unique)
  * @property {string} email - User's email address (unique)
  * @property {string} password_hash - Hashed password
+ * @property {string} role - User role ('admin' | 'user')
+ * @property {boolean} is_active - Account active status
  * @property {Date} created_at - Account creation timestamp
+ * @property {Date} updated_at - Last update timestamp
  */
 
 /**
  * @typedef {Object} UserResponse
  * @property {string} username
  * @property {string} email
+ * @property {string} role
+ * @property {boolean} is_active
  * @property {Date} created_at
+ * @property {Date} updated_at
  */
 
 /**
@@ -34,13 +42,18 @@ export function createUserResponse(user) {
  * @param {string} username - User username
  * @param {string} email - User email
  * @param {string} passwordHash - Hashed password
+ * @param {string} role - User role (default: 'user')
  * @returns {User} New user document
  */
-export function createUserDocument(username, email, passwordHash) {
+export function createUserDocument(username, email, passwordHash, role = DEFAULT_ROLE) {
+  const now = new Date();
   return {
     username,
     email,
     password_hash: passwordHash,
-    created_at: new Date(),
+    role,
+    is_active: true,
+    created_at: now,
+    updated_at: now,
   };
 }
