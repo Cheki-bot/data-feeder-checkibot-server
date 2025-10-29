@@ -1,5 +1,9 @@
 import { Router } from 'express';
-import { registerValidation, loginValidation } from '../../validators/auth.js';
+import {
+  registerValidation,
+  loginValidation,
+  emailParamValidation,
+} from '../../validators/auth.js';
 import { authenticateToken, getCurrentUser, requireAdmin } from '../../middleware/auth.js';
 import AuthController from './auth.controller.js';
 
@@ -16,6 +20,7 @@ router.get('/me', authenticateToken, getCurrentUser, AuthController.getProfile);
 router.get('/users', authenticateToken, getCurrentUser, requireAdmin, AuthController.listUsers);
 router.patch(
   '/users/:email/deactivate',
+  emailParamValidation,
   authenticateToken,
   getCurrentUser,
   requireAdmin,
@@ -23,6 +28,7 @@ router.patch(
 );
 router.patch(
   '/users/:email/activate',
+  emailParamValidation,
   authenticateToken,
   getCurrentUser,
   requireAdmin,
@@ -30,6 +36,7 @@ router.patch(
 );
 router.delete(
   '/users/:email',
+  emailParamValidation,
   authenticateToken,
   getCurrentUser,
   requireAdmin,

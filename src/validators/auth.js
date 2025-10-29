@@ -1,4 +1,5 @@
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
+import { ROLE_VALUES } from '../constants/roles.js';
 
 /**
  * Validation rules for user registration
@@ -29,6 +30,11 @@ export const registerValidation = [
       }
       return true;
     }),
+
+  body('role')
+    .optional()
+    .isIn(ROLE_VALUES)
+    .withMessage(`Role must be one of: ${ROLE_VALUES.join(', ')}`),
 ];
 
 /**
@@ -38,4 +44,12 @@ export const loginValidation = [
   body('email').isEmail().withMessage('Must be a valid email address').normalizeEmail(),
 
   body('password').notEmpty().withMessage('Password is required'),
+];
+
+/**
+ * Validation rules for email parameter in routes
+ */
+
+export const emailParamValidation = [
+  param('email').isEmail().withMessage('Must be a valid email address'),
 ];
