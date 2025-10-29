@@ -1,9 +1,9 @@
 import { body, param } from 'express-validator';
 
 /**
- * Validation rules for creating news
+ * Validation rules for creating verification
  */
-export const createNewsValidation = [
+export const createVerificationValidation = [
   body('title')
     .trim()
     .notEmpty()
@@ -37,9 +37,9 @@ export const createNewsValidation = [
 ];
 
 /**
- * Validation rules for updating news
+ * Validation rules for updating verification
  */
-export const updateNewsValidation = [
+export const updateVerificationValidation = [
   body('title')
     .optional()
     .trim()
@@ -72,6 +72,8 @@ export const updateNewsValidation = [
 ];
 
 /**
- * Validation rules for news ID parameter
+ * Validation rules for verification ID parameter
  */
-export const newsIdParamValidation = [param('id').notEmpty().withMessage('News ID is required')];
+export const verificationIdParamValidation = [
+  param('id').notEmpty().withMessage('Verification ID is required'),
+];
