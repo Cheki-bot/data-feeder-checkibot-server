@@ -5,7 +5,7 @@ import {
   emailParamValidation,
 } from '../../validators/auth.js';
 import { authenticateToken, getCurrentUser, requireAdmin } from '../../middleware/auth.js';
-import AuthController from './auth.controller.js';
+import * as AuthController from './auth.controller.js';
 
 const router = Router();
 
