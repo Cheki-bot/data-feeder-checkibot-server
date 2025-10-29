@@ -35,6 +35,7 @@ export async function initializeDatabase() {
  * Get the current database connection
  * @returns {Db} MongoDB database instance
  */
+
 export function getDatabase() {
   if (!dbConnection) {
     throw new Error('Database not initialized. Call initializeDatabase() first');
