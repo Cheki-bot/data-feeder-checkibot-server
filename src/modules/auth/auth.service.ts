@@ -1,34 +1,48 @@
+import { Db } from 'mongodb';
 import { hashPassword, verifyPassword, generateToken } from '../../utils/auth.js';
-import { createUserDocument, createUserResponse } from './user.model.js';
-import { DEFAULT_ROLE } from '../../constants/roles.js';
+import { createUserDocument, createUserResponse, User, UserResponse } from './user.model.js';
+import { DEFAULT_ROLE, Role } from '../../constants/roles.js';
+
+interface LoginResponse {
+  access_token: string;
+  token_type: string;
+  user: {
+    username: string;
+    email: string;
+    role: Role;
+  };
+}
 
 /**
  * Register a new user
- * @param {Db} db - MongoDB database instance
- * @param {string} username - User username
- * @param {string} email - User email
- * @param {string} password - User password (plain text)
- * @param {string} role - User role (default: 'user')
- * @returns {Promise<Object>} User response without password
  */
-export async function registerUser(db, username, email, password, role = DEFAULT_ROLE) {
+export async function registerUser(
+  db: Db,
+  username: string,
+  email: string,
+  password: string,
+  role: Role = DEFAULT_ROLE,
+): Promise<UserResponse> {
   const normalizedEmail = email.toLowerCase().trim();
 
+   
   const existingUsername = await db.collection('users').findOne({ username });
-  if (existingUsername) {
+  if (existingUsername !== null) {
     throw new Error('USERNAME_ALREADY_EXISTS');
   }
 
+   
   const existingEmail = await db.collection('users').findOne({ email: normalizedEmail });
-  if (existingEmail) {
+  if (existingEmail !== null) {
     throw new Error('EMAIL_ALREADY_EXISTS');
   }
 
   const passwordHash = await hashPassword(password);
   const userDoc = createUserDocument(username, normalizedEmail, passwordHash, role);
 
-  userDoc.failed_attempts = 0;
+  (userDoc as User & { failed_attempts: number }).failed_attempts = 0;
 
+   
   await db.collection('users').insertOne(userDoc);
 
   return createUserResponse(userDoc);
@@ -36,35 +50,37 @@ export async function registerUser(db, username, email, password, role = DEFAULT
 
 /**
  * Authenticate user and generate token
- * @param {Db} db - MongoDB database instance
- * @param {string} email - User email
- * @param {string} password - User password (plain text)
- * @returns {Promise<Object>} Access token and user info
  */
-export async function loginUser(db, email, password) {
+export async function loginUser(db: Db, email: string, password: string): Promise<LoginResponse> {
   const normalizedEmail = email.toLowerCase().trim();
 
+   
   const user = await db.collection('users').findOne({ email: normalizedEmail });
 
-  if (!user) {
+  if (user === null) {
     throw new Error('INVALID_CREDENTIALS');
   }
 
   // Check if user account is active
-  if (!user.is_active) {
+   
+  if (user.is_active === false) {
     throw new Error('ACCOUNT_DEACTIVATED');
   }
 
+   
   const isValidPassword = await verifyPassword(password, user.password_hash);
 
-  if (!isValidPassword) {
+  if (isValidPassword === false) {
     throw new Error('INVALID_CREDENTIALS');
   }
 
   const token = generateToken(
     {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       sub: user.email,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       username: user.username,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       role: user.role,
     },
     '24h',
@@ -74,8 +90,11 @@ export async function loginUser(db, email, password) {
     access_token: token,
     token_type: 'bearer',
     user: {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       username: user.username,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       email: user.email,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       role: user.role,
     },
   };
@@ -83,13 +102,11 @@ export async function loginUser(db, email, password) {
 
 /**
  * Get user by email
- * @param {Db} db - MongoDB database instance
- * @param {string} email - User email
- * @returns {Promise<Object|null>} User without password
  */
-export async function getUserByEmail(db, email) {
+export async function getUserByEmail(db: Db, email: string): Promise<User | null> {
   const normalizedEmail = email.toLowerCase().trim();
 
+   
   const user = await db.collection('users').findOne(
     { email: normalizedEmail },
     {
@@ -99,5 +116,5 @@ export async function getUserByEmail(db, email) {
     },
   );
 
-  return user;
+  return user as User | null;
 }
