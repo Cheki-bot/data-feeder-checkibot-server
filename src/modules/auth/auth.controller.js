@@ -101,6 +101,12 @@ export async function login(req, res) {
   } catch (error) {
     console.error('Login error:', error);
 
+    if (error.message === 'ACCOUNT_DEACTIVATED') {
+      return res.status(403).json({
+        message: 'Your account has been deactivated. Please contact an administrator.',
+      });
+    }
+
     if (error.message === 'INVALID_CREDENTIALS') {
       const db = req.app.locals.db;
       const normalizedEmail = req.body.email.toLowerCase().trim();
@@ -150,4 +156,132 @@ export async function login(req, res) {
  */
 export function getProfile(req, res) {
   res.json(req.currentUser);
+}
+
+/**
+ * GET /api/auth/users
+ * List all users (Admin only)
+ */
+export async function listUsers(req, res) {
+  try {
+    const db = req.app.locals.db;
+    const users = await db
+      .collection('users')
+      .find({}, { projection: { password_hash: 0, failed_attempts: 0, lockout_until: 0 } })
+      .toArray();
+
+    res.json({
+      users,
+      count: users.length,
+    });
+  } catch (error) {
+    console.error('List users error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+}
+
+/**
+ * PATCH /api/auth/users/:email/deactivate
+ * Deactivate a user account (Admin only)
+ */
+
+export async function deactivateUser(req, res) {
+  try {
+    const db = req.app.locals.db;
+    const { email } = req.params;
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const user = await db.collection('users').findOne({ email: normalizedEmail });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!user.is_active) {
+      return res.status(400).json({ message: 'User is already deactivated' });
+    }
+
+    await db.collection('users').updateOne(
+      { email: normalizedEmail },
+      {
+        $set: {
+          is_active: false,
+          updated_at: new Date(),
+        },
+      },
+    );
+
+    res.json({ message: `User ${email} has been deactivated` });
+  } catch (error) {
+    console.error('Deactivate user error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+}
+
+/**
+ * PATCH /api/auth/users/:email/activate
+ * Activate a user account (Admin only)
+ */
+
+export async function activateUser(req, res) {
+  try {
+    const db = req.app.locals.db;
+    const { email } = req.params;
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const user = await db.collection('users').findOne({ email: normalizedEmail });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.is_active) {
+      return res.status(400).json({ message: 'User is already active' });
+    }
+
+    await db.collection('users').updateOne(
+      { email: normalizedEmail },
+      {
+        $set: {
+          is_active: true,
+          updated_at: new Date(),
+        },
+      },
+    );
+
+    res.json({ message: `User ${email} has been activated` });
+  } catch (error) {
+    console.error('Activate user error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+}
+
+/**
+ * DELETE /api/auth/users/:email
+ * Delete a user account permanently (Admin only)
+ */
+
+export async function deleteUser(req, res) {
+  try {
+    const db = req.app.locals.db;
+    const { email } = req.params;
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const user = await db.collection('users').findOne({ email: normalizedEmail });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const result = await db.collection('users').deleteOne({ email: normalizedEmail });
+
+    if (result.deletedCount === 0) {
+      return res.status(500).json({ message: 'Failed to delete user' });
+    }
+
+    res.json({ message: `User ${email} has been deleted permanently` });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
 }
