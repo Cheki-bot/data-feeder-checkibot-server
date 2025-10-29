@@ -1,12 +1,12 @@
 import { createServer } from 'http';
-import app from './app.js';
+import app from './app';
 import { initializeDatabase } from './config/database.js';
-import { env } from './config/index.js';
+import { env } from './config/index';
 
-const PORT = env.PORT || 3000;
+const PORT: number = Number(env.PORT) || 3000;
 
 initializeDatabase()
-  .then(db => {
+  .then((db: import('mongodb').Db) => {
     app.locals.db = db;
     const server = createServer(app);
     server.listen(PORT, () => {
@@ -18,11 +18,11 @@ initializeDatabase()
     process.exit(1);
   });
 
-process.on('unhandledRejection', reason => {
+process.on('unhandledRejection', (reason: unknown) => {
   console.error('Unhandled Rejection:', reason);
 });
 
-process.on('uncaughtException', err => {
+process.on('uncaughtException', (err: Error) => {
   console.error('Uncaught Exception:', err);
   process.exit(1);
 });

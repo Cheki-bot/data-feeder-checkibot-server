@@ -1,5 +1,5 @@
-import { Router } from 'express';
-import { env } from '../config/index.js';
+import { Router, Request, Response } from 'express';
+import { env } from '../config';
 
 const router = Router();
 
@@ -31,12 +31,13 @@ const router = Router();
  *                   type: string
  *                   example: development
  */
-router.get('/', (req, res) => {
+router.get('/', (_req: Request, res: Response) => {
   res.json({
     status: 'ok',
     service: 'data-feeder-server',
     timestamp: new Date().toISOString(),
-    env: env.NODE_ENV || 'development',
+    env:
+      typeof env.NODE_ENV === 'string' && env.NODE_ENV.trim() !== '' ? env.NODE_ENV : 'development',
   });
 });
 

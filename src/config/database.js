@@ -1,5 +1,5 @@
 import { MongoClient } from 'mongodb';
-import { env } from './index.js';
+import { env } from './index';
 
 let dbConnection = null;
 
