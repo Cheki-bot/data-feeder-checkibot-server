@@ -1,10 +1,10 @@
-import { body, param } from 'express-validator';
+import { body, param, ValidationChain } from 'express-validator';
 import { ROLE_VALUES } from '../constants/roles.js';
 
 /**
  * Validation rules for user registration
  */
-export const registerValidation = [
+export const registerValidation: ValidationChain[] = [
   body('username')
     .isLength({ min: 3, max: 30 })
     .withMessage('Username must be between 3 and 30 characters')
@@ -25,6 +25,7 @@ export const registerValidation = [
     .notEmpty()
     .withMessage('Confirm password is required')
     .custom((value, { req }) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (value !== req.body.password) {
         throw new Error('Passwords do not match');
       }
@@ -40,7 +41,7 @@ export const registerValidation = [
 /**
  * Validation rules for user login
  */
-export const loginValidation = [
+export const loginValidation: ValidationChain[] = [
   body('email').isEmail().withMessage('Must be a valid email address').normalizeEmail(),
 
   body('password').notEmpty().withMessage('Password is required'),
@@ -49,7 +50,6 @@ export const loginValidation = [
 /**
  * Validation rules for email parameter in routes
  */
-
-export const emailParamValidation = [
+export const emailParamValidation: ValidationChain[] = [
   param('email').isEmail().withMessage('Must be a valid email address'),
 ];
