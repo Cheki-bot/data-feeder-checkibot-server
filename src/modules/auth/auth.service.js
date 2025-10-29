@@ -1,5 +1,6 @@
 import { hashPassword, verifyPassword, generateToken } from '../../utils/auth.js';
 import { createUserDocument, createUserResponse } from './user.model.js';
+import { DEFAULT_ROLE } from '../../constants/roles.js';
 
 /**
  * Register a new user
@@ -7,9 +8,10 @@ import { createUserDocument, createUserResponse } from './user.model.js';
  * @param {string} username - User username
  * @param {string} email - User email
  * @param {string} password - User password (plain text)
+ * @param {string} role - User role (default: 'user')
  * @returns {Promise<Object>} User response without password
  */
-export async function registerUser(db, username, email, password) {
+export async function registerUser(db, username, email, password, role = DEFAULT_ROLE) {
   const normalizedEmail = email.toLowerCase().trim();
 
   const existingUsername = await db.collection('users').findOne({ username });
@@ -23,7 +25,7 @@ export async function registerUser(db, username, email, password) {
   }
 
   const passwordHash = await hashPassword(password);
-  const userDoc = createUserDocument(username, normalizedEmail, passwordHash);
+  const userDoc = createUserDocument(username, normalizedEmail, passwordHash, role);
 
   userDoc.failed_attempts = 0;
 
@@ -48,6 +50,11 @@ export async function loginUser(db, email, password) {
     throw new Error('INVALID_CREDENTIALS');
   }
 
+  // Check if user account is active
+  if (!user.is_active) {
+    throw new Error('ACCOUNT_DEACTIVATED');
+  }
+
   const isValidPassword = await verifyPassword(password, user.password_hash);
 
   if (!isValidPassword) {
@@ -58,6 +65,7 @@ export async function loginUser(db, email, password) {
     {
       sub: user.email,
       username: user.username,
+      role: user.role,
     },
     '24h',
   );
@@ -68,6 +76,7 @@ export async function loginUser(db, email, password) {
     user: {
       username: user.username,
       email: user.email,
+      role: user.role,
     },
   };
 }

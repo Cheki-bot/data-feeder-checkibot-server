@@ -8,13 +8,6 @@ export const ROLES = {
   USER: 'user',
 };
 
-/**
- * Array of valid role values
- * Used for validation
- */
 export const ROLE_VALUES = Object.values(ROLES);
 
-/**
- * Default role for new users
- */
 export const DEFAULT_ROLE = ROLES.USER;
