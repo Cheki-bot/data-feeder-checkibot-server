@@ -59,7 +59,9 @@ async function createDefaultAdmin(db) {
   try {
     const adminEmail = env.ADMIN_EMAIL || 'admin@checkibot.com';
     const adminPassword = env.ADMIN_PASSWORD || 'Admin123!';
-    const existingAdmin = await db.collection('users').findOne({ email: adminEmail });
+    const existingAdmin = await db.collection('users').findOne({
+      $or: [{ email: adminEmail }, { username: 'admin' }],
+    });
 
     if (existingAdmin) return;
 
