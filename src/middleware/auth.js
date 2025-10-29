@@ -1,4 +1,5 @@
 import { decodeToken } from '../utils/auth.js';
+import { ROLES } from '../constants/roles.js';
 
 export function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
@@ -37,4 +38,58 @@ export async function getCurrentUser(req, res, next) {
   } catch (error) {
     return res.status(500).json({ message: 'Database error', error: error.message });
   }
+}
+
+/**
+ * Middleware to check if user has required role(s)
+ * @param {...string} roles - Allowed roles
+ * @returns {Function} Express middleware
+ */
+export function requireRole(...roles) {
+  return (req, res, next) => {
+    if (!req.currentUser) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    if (!roles.includes(req.currentUser.role)) {
+      return res.status(403).json({
+        message: 'Insufficient permissions',
+        required: roles,
+        current: req.currentUser.role,
+      });
+    }
+
+    next();
+  };
+}
+
+/**
+ * Middleware to check if user is admin
+ * @returns {Function} Express middleware
+ */
+export function requireAdmin(req, res, next) {
+  return requireRole(ROLES.ADMIN)(req, res, next);
+}
+
+/**
+ * Middleware to check if user is the owner of the resource or an admin
+ * @param {Function} getResourceEmail - Function to extract email from request
+ * @returns {Function} Express middleware
+ */
+export function isOwnerOrAdmin(getResourceEmail) {
+  return (req, res, next) => {
+    if (!req.currentUser) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    const resourceEmail = getResourceEmail(req);
+
+    if (req.currentUser.role === ROLES.ADMIN || req.currentUser.email === resourceEmail) {
+      return next();
+    }
+
+    return res.status(403).json({
+      message: 'You can only access your own resources',
+    });
+  };
 }
