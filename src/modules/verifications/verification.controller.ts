@@ -61,8 +61,8 @@ export async function getAllVerifications(req: AuthRequest, res: Response): Prom
     const filters: VerificationService.NewsVerificationFilters = {};
 
     // Users can only see their own news verifications, admins see all
-    if (req.currentUser?.role !== ROLES.ADMIN) {
-      filters.created_by = req.currentUser?.email;
+    if (req.currentUser !== undefined && req.currentUser.role !== ROLES.ADMIN) {
+      filters.created_by = req.currentUser.email;
     }
 
     if (classified_as !== undefined) {
@@ -102,8 +102,9 @@ export async function getVerificationById(req: AuthRequest, res: Response): Prom
 
     // Check permissions: users can only access their own news verifications
     if (
-      req.currentUser?.role !== ROLES.ADMIN &&
-      verification.created_by !== req.currentUser?.email
+      req.currentUser !== undefined &&
+      req.currentUser.role !== ROLES.ADMIN &&
+      verification.created_by !== req.currentUser.email
     ) {
       res.status(403).json({ message: 'You can only access your own news verifications' });
       return;
@@ -150,8 +151,9 @@ export async function updateVerification(req: AuthRequest, res: Response): Promi
 
     // Check permissions: users can only update their own news verifications
     if (
-      req.currentUser?.role !== ROLES.ADMIN &&
-      existingVerification.created_by !== req.currentUser?.email
+      req.currentUser !== undefined &&
+      req.currentUser.role !== ROLES.ADMIN &&
+      existingVerification.created_by !== req.currentUser.email
     ) {
       res.status(403).json({ message: 'You can only update your own news verifications' });
       return;
