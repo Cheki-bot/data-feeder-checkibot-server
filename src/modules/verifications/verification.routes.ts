@@ -3,9 +3,9 @@ import {
   createVerificationValidation,
   updateVerificationValidation,
   verificationIdParamValidation,
-} from '../../validators/verification.js';
-import { authenticateToken, getCurrentUser, requireAdmin } from '../../middleware/auth.js';
-import * as VerificationController from './verification.controller.js';
+} from '../../validators/verification';
+import { authenticateToken, getCurrentUser, requireAdmin } from '../../middleware/auth';
+import * as VerificationController from './verification.controller';
 
 const router = Router();
 
@@ -15,13 +15,13 @@ router.use(authenticateToken, getCurrentUser);
 // Create verification (User and Admin)
 router.post('/', createVerificationValidation, VerificationController.createVerification);
 
-// Get all verifications (Users see only their own, Admins see all)
+// Get all verifications (User gets own, Admin gets all)
 router.get('/', VerificationController.getAllVerifications);
 
-// Get verification by ID (Users can only access their own, Admins can access any)
+// Get single verification by ID (User gets own, Admin gets any)
 router.get('/:id', verificationIdParamValidation, VerificationController.getVerificationById);
 
-// Update verification (Users can only update their own, Admins can update any)
+// Update verification (User updates own, Admin updates any)
 router.patch(
   '/:id',
   verificationIdParamValidation,
@@ -32,8 +32,8 @@ router.patch(
 // Delete verification (Admin only)
 router.delete(
   '/:id',
-  verificationIdParamValidation,
   requireAdmin,
+  verificationIdParamValidation,
   VerificationController.deleteVerification,
 );
 

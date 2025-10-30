@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
-import { decodeToken } from '../utils/auth.js';
-import { ROLES } from '../constants/roles.js';
-import { AuthRequest, UserDocument, getDb } from '../types/authInterfaces.js';
+import { decodeToken } from '../utils/auth';
+import { ROLES } from '../constants/roles';
+import { AuthRequest, UserDocument, getDb } from '../types/authInterfaces';
 
 export function authenticateToken(req: AuthRequest, res: Response, next: NextFunction): void {
   const authHeader = req.headers['authorization'];

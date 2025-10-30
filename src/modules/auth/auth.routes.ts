@@ -1,11 +1,7 @@
 import { Router } from 'express';
-import {
-  registerValidation,
-  loginValidation,
-  emailParamValidation,
-} from '../../validators/auth.js';
-import { authenticateToken, getCurrentUser, requireAdmin } from '../../middleware/auth.js';
-import * as AuthController from './auth.controller.js';
+import { registerValidation, loginValidation, emailParamValidation } from '../../validators/auth';
+import { authenticateToken, getCurrentUser, requireAdmin } from '../../middleware/auth';
+import * as AuthController from './auth.controller';
 
 const router = Router();
 

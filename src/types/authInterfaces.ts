@@ -1,7 +1,7 @@
 import { Request } from 'express';
 import { Db } from 'mongodb';
-import { Role } from '../constants/roles.js';
-import { TokenPayload } from '../utils/auth.js';
+import { Role } from '../constants/roles';
+import { TokenPayload } from '../utils/auth';
 
 /**
  * User document in MongoDB

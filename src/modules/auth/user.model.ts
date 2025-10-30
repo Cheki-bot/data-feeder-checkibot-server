@@ -1,5 +1,5 @@
-import { DEFAULT_ROLE, Role } from '../../constants/roles.js';
-import { UserDocument } from '../../types/authInterfaces.js';
+import { DEFAULT_ROLE, Role } from '../../constants/roles';
+import { UserDocument } from '../../types/authInterfaces';
 
 /**
  * User Model

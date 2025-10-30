@@ -1,9 +1,9 @@
-import { body, param } from 'express-validator';
+import { body, param, ValidationChain } from 'express-validator';
 
 /**
  * Validation rules for creating verification
  */
-export const createVerificationValidation = [
+export const createVerificationValidation: ValidationChain[] = [
   body('title')
     .trim()
     .notEmpty()
@@ -39,7 +39,7 @@ export const createVerificationValidation = [
 /**
  * Validation rules for updating verification
  */
-export const updateVerificationValidation = [
+export const updateVerificationValidation: ValidationChain[] = [
   body('title')
     .optional()
     .trim()
@@ -74,6 +74,6 @@ export const updateVerificationValidation = [
 /**
  * Validation rules for verification ID parameter
  */
-export const verificationIdParamValidation = [
+export const verificationIdParamValidation: ValidationChain[] = [
   param('id').notEmpty().withMessage('Verification ID is required'),
 ];

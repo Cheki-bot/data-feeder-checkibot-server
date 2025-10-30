@@ -1,5 +1,5 @@
 import { body, param, ValidationChain } from 'express-validator';
-import { ROLE_VALUES } from '../constants/roles.js';
+import { ROLE_VALUES } from '../constants/roles';
 
 /**
  * Validation rules for user registration

@@ -1,13 +1,13 @@
 import { Response } from 'express';
 import { validationResult } from 'express-validator';
-import * as AuthService from './auth.service.js';
+import * as AuthService from './auth.service';
 import {
   AuthRequest,
   RegisterBody,
   LoginBody,
   UserDocument,
   getDb,
-} from '../../types/authInterfaces.js';
+} from '../../types/authInterfaces';
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 60;

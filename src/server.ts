@@ -1,6 +1,6 @@
 import { createServer } from 'http';
 import app from './app';
-import { initializeDatabase } from './config/database.js';
+import { initializeDatabase } from './config/database';
 import { env } from './config/index';
 
 const PORT: number = Number(env.PORT) || 3000;

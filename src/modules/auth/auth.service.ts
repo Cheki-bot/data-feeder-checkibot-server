@@ -1,8 +1,8 @@
 import { Db } from 'mongodb';
-import { hashPassword, verifyPassword, generateToken } from '../../utils/auth.js';
-import { createUserDocument, createUserResponse, User, UserResponse } from './user.model.js';
-import { DEFAULT_ROLE, Role } from '../../constants/roles.js';
-import { UserDocument } from '../../types/authInterfaces.js';
+import { hashPassword, verifyPassword, generateToken } from '../../utils/auth';
+import { createUserDocument, createUserResponse, User, UserResponse } from './user.model';
+import { DEFAULT_ROLE, Role } from '../../constants/roles';
+import { UserDocument } from '../../types/authInterfaces';
 
 interface LoginResponse {
   access_token: string;
