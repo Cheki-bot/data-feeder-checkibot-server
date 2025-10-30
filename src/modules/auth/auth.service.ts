@@ -41,7 +41,7 @@ export async function registerUser(
   const passwordHash = await hashPassword(password);
   const userDoc = createUserDocument(username, normalizedEmail, passwordHash, role);
 
-  (userDoc as User & { failed_attempts: number }).failed_attempts = 0;
+  userDoc.failed_attempts = 0;
 
   await db.collection<UserDocument>('users').insertOne(userDoc);
 
