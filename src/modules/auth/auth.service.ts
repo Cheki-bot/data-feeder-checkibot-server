@@ -1,6 +1,6 @@
 import { Db } from 'mongodb';
 import { hashPassword, verifyPassword, generateToken } from '../../utils/auth';
-import { createUserDocument, createUserResponse, User, UserResponse } from './user.model';
+import { createUserDocument, createUserResponse, UserResponse } from './user.model';
 import { DEFAULT_ROLE, Role } from '../../constants/roles';
 import { UserDocument } from '../../types/authInterfaces';
 
@@ -94,7 +94,10 @@ export async function loginUser(db: Db, email: string, password: string): Promis
 /**
  * Get user by email
  */
-export async function getUserByEmail(db: Db, email: string): Promise<User | null> {
+export async function getUserByEmail(
+  db: Db,
+  email: string,
+): Promise<Omit<UserDocument, 'password_hash'> | null> {
   const normalizedEmail = email.toLowerCase().trim();
 
   const user = await db.collection<UserDocument>('users').findOne(
@@ -106,5 +109,5 @@ export async function getUserByEmail(db: Db, email: string): Promise<User | null
     },
   );
 
-  return user as User | null;
+  return user;
 }
