@@ -25,8 +25,8 @@ export const registerValidation: ValidationChain[] = [
     .notEmpty()
     .withMessage('Confirm password is required')
     .custom((value, { req }) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (value !== req.body.password) {
+      const body = req.body as { password?: string };
+      if (value !== body.password) {
         throw new Error('Passwords do not match');
       }
       return true;

@@ -1,20 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
-import { decodeToken, TokenPayload } from '../utils/auth.js';
+import { Response, NextFunction } from 'express';
+import { decodeToken } from '../utils/auth.js';
 import { ROLES } from '../constants/roles.js';
-
-/**
- * Extended Request interface with user and currentUser properties
- */
-export interface AuthRequest extends Request {
-  user?: TokenPayload;
-  currentUser?: {
-    email: string;
-    username: string;
-    role: string;
-    is_active: boolean;
-    [key: string]: unknown;
-  };
-}
+import { AuthRequest, UserDocument, getDb } from '../types/authInterfaces.js';
 
 export function authenticateToken(req: AuthRequest, res: Response, next: NextFunction): void {
   const authHeader = req.headers['authorization'];
@@ -44,14 +31,10 @@ export async function getCurrentUser(
   next: NextFunction,
 ): Promise<void> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const db = req.app.locals.db;
+    const db = getDb(req);
     const normalizedEmail = req.user?.sub.toLowerCase().trim();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
     const user = await db
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      .collection('users')
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      .collection<UserDocument>('users')
       .findOne({ email: normalizedEmail }, { projection: { password_hash: 0 } });
 
     if (user === null) {
@@ -59,7 +42,6 @@ export async function getCurrentUser(
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     req.currentUser = user;
     next();
   } catch (error) {

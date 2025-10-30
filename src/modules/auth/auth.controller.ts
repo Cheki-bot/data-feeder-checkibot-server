@@ -1,8 +1,13 @@
 import { Response } from 'express';
 import { validationResult } from 'express-validator';
-import { Db } from 'mongodb';
 import * as AuthService from './auth.service.js';
-import { AuthRequest } from '../../middleware/auth.js';
+import {
+  AuthRequest,
+  RegisterBody,
+  LoginBody,
+  UserDocument,
+  getDb,
+} from '../../types/authInterfaces.js';
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 60;
@@ -18,13 +23,10 @@ export async function register(req: AuthRequest, res: Response): Promise<void> {
     return;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const { username, email, password } = req.body;
+  const { username, email, password } = req.body as RegisterBody;
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const db: Db = req.app.locals.db;
-     
+    const db = getDb(req);
     const user = await AuthService.registerUser(db, username, email, password);
 
     res.status(201).json({
@@ -61,26 +63,20 @@ export async function login(req: AuthRequest, res: Response): Promise<void> {
     return;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const { email, password } = req.body;
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
+  const { email, password } = req.body as LoginBody;
   const normalizedEmail = email.toLowerCase().trim();
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const db: Db = req.app.locals.db;
-     
-    const user = await db.collection('users').findOne({ email: normalizedEmail });
+    const db = getDb(req);
+    const user = await db.collection<UserDocument>('users').findOne({ email: normalizedEmail });
 
     if (user === null) {
       res.status(401).json({ message: 'Invalid credentials' });
       return;
     }
 
-     
     if (user.lockout_until !== undefined && user.lockout_until !== null) {
       const now = new Date();
-       
       const lockoutUntil = new Date(user.lockout_until);
 
       if (now < lockoutUntil) {
@@ -93,8 +89,7 @@ export async function login(req: AuthRequest, res: Response): Promise<void> {
         });
         return;
       } else {
-         
-        await db.collection('users').updateOne(
+        await db.collection<UserDocument>('users').updateOne(
           { email: normalizedEmail },
           {
             $set: { failed_attempts: 0 },
@@ -104,11 +99,9 @@ export async function login(req: AuthRequest, res: Response): Promise<void> {
       }
     }
 
-     
     const result = await AuthService.loginUser(db, email, password);
 
-     
-    await db.collection('users').updateOne(
+    await db.collection<UserDocument>('users').updateOne(
       { email: normalizedEmail },
       {
         $set: { failed_attempts: 0 },
@@ -131,26 +124,22 @@ export async function login(req: AuthRequest, res: Response): Promise<void> {
     }
 
     if (error instanceof Error && error.message === 'INVALID_CREDENTIALS') {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const db: Db = req.app.locals.db;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-      const normalizedEmail = req.body.email.toLowerCase().trim();
-       
-      const user = await db.collection('users').findOne({ email: normalizedEmail });
+      const db = getDb(req);
+      const { email } = req.body as LoginBody;
+      const normalizedEmail = email.toLowerCase().trim();
+      const user = await db.collection<UserDocument>('users').findOne({ email: normalizedEmail });
 
       if (user === null) {
         res.status(401).json({ message: 'Invalid credentials' });
         return;
       }
 
-       
-      const failedAttempts = ((user.failed_attempts as number | undefined) ?? 0) + 1;
+      const failedAttempts = (user.failed_attempts ?? 0) + 1;
 
       if (failedAttempts >= MAX_LOGIN_ATTEMPTS) {
         const lockoutUntil = new Date(Date.now() + LOCKOUT_MINUTES * 60 * 1000);
 
-         
-        await db.collection('users').updateOne(
+        await db.collection<UserDocument>('users').updateOne(
           { email: normalizedEmail },
           {
             $set: {
@@ -166,9 +155,8 @@ export async function login(req: AuthRequest, res: Response): Promise<void> {
         return;
       }
 
-       
       await db
-        .collection('users')
+        .collection<UserDocument>('users')
         .updateOne({ email: normalizedEmail }, { $set: { failed_attempts: failedAttempts } });
 
       const attemptsLeft = MAX_LOGIN_ATTEMPTS - failedAttempts;
@@ -197,20 +185,14 @@ export function getProfile(req: AuthRequest, res: Response): void {
  */
 export async function listUsers(req: AuthRequest, res: Response): Promise<void> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const db: Db = req.app.locals.db;
-     
+    const db = getDb(req);
     const users = await db
-       
-      .collection('users')
-       
+      .collection<UserDocument>('users')
       .find({}, { projection: { password_hash: 0, failed_attempts: 0, lockout_until: 0 } })
-       
       .toArray();
 
     res.json({
       users,
-       
       count: users.length,
     });
   } catch (error) {
@@ -226,29 +208,23 @@ export async function listUsers(req: AuthRequest, res: Response): Promise<void> 
  */
 export async function deactivateUser(req: AuthRequest, res: Response): Promise<void> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const db: Db = req.app.locals.db;
-     
+    const db = getDb(req);
     const { email } = req.params;
-     
     const normalizedEmail = email.toLowerCase().trim();
 
-     
-    const user = await db.collection('users').findOne({ email: normalizedEmail });
+    const user = await db.collection<UserDocument>('users').findOne({ email: normalizedEmail });
 
     if (user === null) {
       res.status(404).json({ message: 'User not found' });
       return;
     }
 
-     
     if (user.is_active === false) {
       res.status(400).json({ message: 'User is already deactivated' });
       return;
     }
 
-     
-    await db.collection('users').updateOne(
+    await db.collection<UserDocument>('users').updateOne(
       { email: normalizedEmail },
       {
         $set: {
@@ -272,29 +248,23 @@ export async function deactivateUser(req: AuthRequest, res: Response): Promise<v
  */
 export async function activateUser(req: AuthRequest, res: Response): Promise<void> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const db: Db = req.app.locals.db;
-     
+    const db = getDb(req);
     const { email } = req.params;
-     
     const normalizedEmail = email.toLowerCase().trim();
 
-     
-    const user = await db.collection('users').findOne({ email: normalizedEmail });
+    const user = await db.collection<UserDocument>('users').findOne({ email: normalizedEmail });
 
     if (user === null) {
       res.status(404).json({ message: 'User not found' });
       return;
     }
 
-     
     if (user.is_active === true) {
       res.status(400).json({ message: 'User is already active' });
       return;
     }
 
-     
-    await db.collection('users').updateOne(
+    await db.collection<UserDocument>('users').updateOne(
       { email: normalizedEmail },
       {
         $set: {
@@ -318,25 +288,19 @@ export async function activateUser(req: AuthRequest, res: Response): Promise<voi
  */
 export async function deleteUser(req: AuthRequest, res: Response): Promise<void> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const db: Db = req.app.locals.db;
-     
+    const db = getDb(req);
     const { email } = req.params;
-     
     const normalizedEmail = email.toLowerCase().trim();
 
-     
-    const user = await db.collection('users').findOne({ email: normalizedEmail });
+    const user = await db.collection<UserDocument>('users').findOne({ email: normalizedEmail });
 
     if (user === null) {
       res.status(404).json({ message: 'User not found' });
       return;
     }
 
-     
-    const result = await db.collection('users').deleteOne({ email: normalizedEmail });
+    const result = await db.collection<UserDocument>('users').deleteOne({ email: normalizedEmail });
 
-     
     if (result.deletedCount === 0) {
       res.status(500).json({ message: 'Failed to delete user' });
       return;

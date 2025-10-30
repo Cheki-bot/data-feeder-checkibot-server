@@ -2,6 +2,7 @@ import { Db } from 'mongodb';
 import { hashPassword, verifyPassword, generateToken } from '../../utils/auth.js';
 import { createUserDocument, createUserResponse, User, UserResponse } from './user.model.js';
 import { DEFAULT_ROLE, Role } from '../../constants/roles.js';
+import { UserDocument } from '../../types/authInterfaces.js';
 
 interface LoginResponse {
   access_token: string;
@@ -25,14 +26,14 @@ export async function registerUser(
 ): Promise<UserResponse> {
   const normalizedEmail = email.toLowerCase().trim();
 
-   
-  const existingUsername = await db.collection('users').findOne({ username });
+  const existingUsername = await db.collection<UserDocument>('users').findOne({ username });
   if (existingUsername !== null) {
     throw new Error('USERNAME_ALREADY_EXISTS');
   }
 
-   
-  const existingEmail = await db.collection('users').findOne({ email: normalizedEmail });
+  const existingEmail = await db
+    .collection<UserDocument>('users')
+    .findOne({ email: normalizedEmail });
   if (existingEmail !== null) {
     throw new Error('EMAIL_ALREADY_EXISTS');
   }
@@ -42,8 +43,7 @@ export async function registerUser(
 
   (userDoc as User & { failed_attempts: number }).failed_attempts = 0;
 
-   
-  await db.collection('users').insertOne(userDoc);
+  await db.collection<UserDocument>('users').insertOne(userDoc);
 
   return createUserResponse(userDoc);
 }
@@ -54,20 +54,17 @@ export async function registerUser(
 export async function loginUser(db: Db, email: string, password: string): Promise<LoginResponse> {
   const normalizedEmail = email.toLowerCase().trim();
 
-   
-  const user = await db.collection('users').findOne({ email: normalizedEmail });
+  const user = await db.collection<UserDocument>('users').findOne({ email: normalizedEmail });
 
   if (user === null) {
     throw new Error('INVALID_CREDENTIALS');
   }
 
   // Check if user account is active
-   
   if (user.is_active === false) {
     throw new Error('ACCOUNT_DEACTIVATED');
   }
 
-   
   const isValidPassword = await verifyPassword(password, user.password_hash);
 
   if (isValidPassword === false) {
@@ -76,11 +73,8 @@ export async function loginUser(db: Db, email: string, password: string): Promis
 
   const token = generateToken(
     {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       sub: user.email,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       username: user.username,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       role: user.role,
     },
     '24h',
@@ -90,11 +84,8 @@ export async function loginUser(db: Db, email: string, password: string): Promis
     access_token: token,
     token_type: 'bearer',
     user: {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       username: user.username,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       email: user.email,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       role: user.role,
     },
   };
@@ -106,8 +97,7 @@ export async function loginUser(db: Db, email: string, password: string): Promis
 export async function getUserByEmail(db: Db, email: string): Promise<User | null> {
   const normalizedEmail = email.toLowerCase().trim();
 
-   
-  const user = await db.collection('users').findOne(
+  const user = await db.collection<UserDocument>('users').findOne(
     { email: normalizedEmail },
     {
       projection: {
