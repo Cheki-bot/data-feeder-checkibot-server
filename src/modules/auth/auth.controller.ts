@@ -74,7 +74,7 @@ export async function login(req: AuthRequest, res: Response): Promise<void> {
       return;
     }
 
-    if (user.lockout_until !== undefined && user.lockout_until !== null) {
+    if (user.lockout_until != null) {
       const now = new Date();
       const lockoutUntil = new Date(user.lockout_until);
 
