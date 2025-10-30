@@ -61,8 +61,13 @@ export async function closeDatabase(): Promise<void> {
  */
 async function createDefaultAdmin(db: Db): Promise<void> {
   try {
-    const adminEmail = env.ADMIN_EMAIL ?? 'admin@checkibot.com';
-    const adminPassword = env.ADMIN_PASSWORD ?? 'Admin123!';
+    const adminEmail = env.ADMIN_EMAIL;
+    const adminPassword = env.ADMIN_PASSWORD;
+
+    if (adminEmail === undefined || adminPassword === undefined) {
+      throw new Error('ADMIN_EMAIL and ADMIN_PASSWORD must be set in .env file for security');
+    }
+
     const existingAdmin = await db.collection<UserDocument>('users').findOne({
       $or: [{ email: adminEmail }, { username: 'admin' }],
     });
