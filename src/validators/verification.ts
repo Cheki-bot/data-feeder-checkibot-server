@@ -52,11 +52,11 @@ export const createVerificationValidation: ValidationChain[] = [
     .isISO8601()
     .withMessage('Publication date must be a valid date'),
 
-  body('tags').isArray().withMessage('Tags must be an array'),
+  body('tags').isArray().notEmpty().withMessage('Tags must be a non-empty array'),
 
-  body('tags.*.name').isString().withMessage('Tag name must be a string'),
+  body('tags.*.name').notEmpty().isString().withMessage('Tag name must be a string'),
 
-  body('tags.*.url').isURL().withMessage('Tag URL must be a valid URL'),
+  body('tags.*.url').notEmpty().isURL().withMessage('Tag URL must be a valid URL'),
 ];
 
 /**
@@ -95,5 +95,9 @@ export const updateVerificationValidation: ValidationChain[] = [
  * Validation rules for verification ID parameter
  */
 export const verificationIdParamValidation: ValidationChain[] = [
-  param('id').notEmpty().withMessage('Verification ID is required'),
+  param('id')
+    .notEmpty()
+    .withMessage('Verification ID is required')
+    .isMongoId()
+    .withMessage('Invalid verification ID format'),
 ];

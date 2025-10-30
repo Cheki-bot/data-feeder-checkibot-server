@@ -32,7 +32,11 @@ export async function getCurrentUser(
 ): Promise<void> {
   try {
     const db = getDb(req);
-    const normalizedEmail = req.user?.sub.toLowerCase().trim();
+    if (req.user?.sub === undefined || req.user.sub === null || req.user.sub === '') {
+      res.status(401).json({ message: 'Invalid token payload' });
+      return;
+    }
+    const normalizedEmail = req.user.sub.toLowerCase().trim();
     const user = await db
       .collection<UserDocument>('users')
       .findOne({ email: normalizedEmail }, { projection: { password_hash: 0 } });

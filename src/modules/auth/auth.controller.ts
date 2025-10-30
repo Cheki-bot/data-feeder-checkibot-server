@@ -23,11 +23,10 @@ export async function register(req: AuthRequest, res: Response): Promise<void> {
     return;
   }
 
-  const { username, email, password } = req.body as RegisterBody;
-
+  const { username, email, password, role } = req.body as RegisterBody;
   try {
     const db = getDb(req);
-    const user = await AuthService.registerUser(db, username, email, password);
+    const user = await AuthService.registerUser(db, username, email, password, role);
 
     res.status(201).json({
       message: 'User registered successfully',
