@@ -30,7 +30,7 @@ export async function createNewsVerification(
     .findOne({ _id: result.insertedId });
 
   if (createdVerification === null) {
-    throw new Error('Failed to create news verification');
+    throw new Error('Failed to retrieve newly created news verification from database');
   }
 
   return createNewsVerificationResponse(createdVerification);
