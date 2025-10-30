@@ -3,16 +3,15 @@ import { validationResult } from 'express-validator';
 import * as VerificationService from './verification.service';
 import { ROLES } from '../../constants/roles';
 import { AuthRequest, getDb } from '../../types/authInterfaces';
-import { CreateVerificationData } from './verification.model';
+import { CreateNewsVerificationData } from './verification.model';
 
-interface VerificationQuery {
-  status?: string;
-  category?: string;
+interface NewsVerificationQuery {
+  classified_as?: string;
 }
 
 /**
  * POST /api/verifications
- * Create a new verification (User and Admin)
+ * Create a new news verification (User and Admin)
  */
 export async function createVerification(req: AuthRequest, res: Response): Promise<void> {
   const errors = validationResult(req);
@@ -23,7 +22,7 @@ export async function createVerification(req: AuthRequest, res: Response): Promi
 
   try {
     const db = getDb(req);
-    const verificationData = req.body as CreateVerificationData;
+    const verificationData = req.body as CreateNewsVerificationData;
     const userEmail = req.currentUser?.email;
 
     if (userEmail === undefined) {
@@ -31,18 +30,18 @@ export async function createVerification(req: AuthRequest, res: Response): Promi
       return;
     }
 
-    const verification = await VerificationService.createVerification(
+    const verification = await VerificationService.createNewsVerification(
       db,
       verificationData,
       userEmail,
     );
 
     res.status(201).json({
-      message: 'Verification created successfully',
+      message: 'News verification created successfully',
       verification,
     });
   } catch (error) {
-    console.error('Create verification error:', error);
+    console.error('Create news verification error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     res.status(500).json({ message: 'Server error', error: message });
   }
@@ -50,38 +49,34 @@ export async function createVerification(req: AuthRequest, res: Response): Promi
 
 /**
  * GET /api/verifications
- * Get all verifications
- * - Users can only see their own verifications
- * - Admins can see all verifications
+ * Get all news verifications
+ * - Users can only see their own news verifications
+ * - Admins can see all news verifications
  */
 export async function getAllVerifications(req: AuthRequest, res: Response): Promise<void> {
   try {
     const db = getDb(req);
-    const { status, category } = req.query as VerificationQuery;
+    const { classified_as } = req.query as NewsVerificationQuery;
 
-    const filters: VerificationService.VerificationFilters = {};
+    const filters: VerificationService.NewsVerificationFilters = {};
 
-    // Users can only see their own verifications, admins see all
+    // Users can only see their own news verifications, admins see all
     if (req.currentUser?.role !== ROLES.ADMIN) {
       filters.created_by = req.currentUser?.email;
     }
 
-    if (status !== undefined) {
-      filters.status = status as 'draft' | 'published';
+    if (classified_as !== undefined) {
+      filters.classified_as = classified_as;
     }
 
-    if (category !== undefined) {
-      filters.category = category;
-    }
-
-    const verifications = await VerificationService.getAllVerifications(db, filters);
+    const verifications = await VerificationService.getAllNewsVerifications(db, filters);
 
     res.json({
       verifications,
       count: verifications.length,
     });
   } catch (error) {
-    console.error('Get all verifications error:', error);
+    console.error('Get all news verifications error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     res.status(500).json({ message: 'Server error', error: message });
   }
@@ -89,37 +84,37 @@ export async function getAllVerifications(req: AuthRequest, res: Response): Prom
 
 /**
  * GET /api/verifications/:id
- * Get a single verification by ID
- * - Users can only access their own verifications
- * - Admins can access any verification
+ * Get a single news verification by ID
+ * - Users can only access their own news verifications
+ * - Admins can access any news verification
  */
 export async function getVerificationById(req: AuthRequest, res: Response): Promise<void> {
   try {
     const db = getDb(req);
     const { id } = req.params;
 
-    const verification = await VerificationService.getVerificationById(db, id);
+    const verification = await VerificationService.getNewsVerificationById(db, id);
 
     if (verification === null) {
-      res.status(404).json({ message: 'Verification not found' });
+      res.status(404).json({ message: 'News verification not found' });
       return;
     }
 
-    // Check permissions: users can only access their own verifications
+    // Check permissions: users can only access their own news verifications
     if (
       req.currentUser?.role !== ROLES.ADMIN &&
       verification.created_by !== req.currentUser?.email
     ) {
-      res.status(403).json({ message: 'You can only access your own verifications' });
+      res.status(403).json({ message: 'You can only access your own news verifications' });
       return;
     }
 
     res.json(verification);
   } catch (error) {
-    console.error('Get verification by ID error:', error);
+    console.error('Get news verification by ID error:', error);
 
     if (error instanceof Error && error.message === 'INVALID_VERIFICATION_ID') {
-      res.status(400).json({ message: 'Invalid verification ID format' });
+      res.status(400).json({ message: 'Invalid news verification ID format' });
       return;
     }
 
@@ -130,9 +125,9 @@ export async function getVerificationById(req: AuthRequest, res: Response): Prom
 
 /**
  * PATCH /api/verifications/:id
- * Update a verification
- * - Users can only update their own verifications
- * - Admins can update any verification
+ * Update a news verification
+ * - Users can only update their own news verifications
+ * - Admins can update any news verification
  */
 export async function updateVerification(req: AuthRequest, res: Response): Promise<void> {
   const errors = validationResult(req);
@@ -145,35 +140,39 @@ export async function updateVerification(req: AuthRequest, res: Response): Promi
     const db = getDb(req);
     const { id } = req.params;
 
-    // Check if verification exists
-    const existingVerification = await VerificationService.getVerificationById(db, id);
+    // Check if news verification exists
+    const existingVerification = await VerificationService.getNewsVerificationById(db, id);
 
     if (existingVerification === null) {
-      res.status(404).json({ message: 'Verification not found' });
+      res.status(404).json({ message: 'News verification not found' });
       return;
     }
 
-    // Check permissions: users can only update their own verifications
+    // Check permissions: users can only update their own news verifications
     if (
       req.currentUser?.role !== ROLES.ADMIN &&
       existingVerification.created_by !== req.currentUser?.email
     ) {
-      res.status(403).json({ message: 'You can only update your own verifications' });
+      res.status(403).json({ message: 'You can only update your own news verifications' });
       return;
     }
 
-    const updateData = req.body as Partial<CreateVerificationData>;
-    const updatedVerification = await VerificationService.updateVerification(db, id, updateData);
+    const updateData = req.body as Partial<CreateNewsVerificationData>;
+    const updatedVerification = await VerificationService.updateNewsVerification(
+      db,
+      id,
+      updateData,
+    );
 
     res.json({
-      message: 'Verification updated successfully',
+      message: 'News verification updated successfully',
       verification: updatedVerification,
     });
   } catch (error) {
-    console.error('Update verification error:', error);
+    console.error('Update news verification error:', error);
 
     if (error instanceof Error && error.message === 'INVALID_VERIFICATION_ID') {
-      res.status(400).json({ message: 'Invalid verification ID format' });
+      res.status(400).json({ message: 'Invalid news verification ID format' });
       return;
     }
 
@@ -184,34 +183,34 @@ export async function updateVerification(req: AuthRequest, res: Response): Promi
 
 /**
  * DELETE /api/verifications/:id
- * Delete a verification (Admin only)
+ * Delete a news verification (Admin only)
  */
 export async function deleteVerification(req: AuthRequest, res: Response): Promise<void> {
   try {
     const db = getDb(req);
     const { id } = req.params;
 
-    // Check if verification exists
-    const existingVerification = await VerificationService.getVerificationById(db, id);
+    // Check if news verification exists
+    const existingVerification = await VerificationService.getNewsVerificationById(db, id);
 
     if (existingVerification === null) {
-      res.status(404).json({ message: 'Verification not found' });
+      res.status(404).json({ message: 'News verification not found' });
       return;
     }
 
-    const deleted = await VerificationService.deleteVerification(db, id);
+    const deleted = await VerificationService.deleteNewsVerification(db, id);
 
     if (!deleted) {
-      res.status(500).json({ message: 'Failed to delete verification' });
+      res.status(500).json({ message: 'Failed to delete news verification' });
       return;
     }
 
-    res.json({ message: 'Verification deleted successfully' });
+    res.json({ message: 'News verification deleted successfully' });
   } catch (error) {
-    console.error('Delete verification error:', error);
+    console.error('Delete news verification error:', error);
 
     if (error instanceof Error && error.message === 'INVALID_VERIFICATION_ID') {
-      res.status(400).json({ message: 'Invalid verification ID format' });
+      res.status(400).json({ message: 'Invalid news verification ID format' });
       return;
     }
 

@@ -1,99 +1,98 @@
 import { ObjectId } from 'mongodb';
 
 /**
- * Verification Model
- * Represents a verification article in the system
+ * News Verification Model
+ * Represents a news verification in the system
  */
 
-export type VerificationStatus = 'draft' | 'published';
+export interface NewsTag {
+  name: string;
+  url: string;
+}
 
-export interface VerificationDocument {
+export interface NewsVerificationDocument {
   _id?: ObjectId;
   title: string;
-  content: string;
-  category: string;
-  tags: string[];
-  political_tendency: string;
-  featured_image: string;
-  sources: string[];
-  status: VerificationStatus;
+  classified_as: string;
+  section_url: string;
+  summary: string;
+  body: string;
+  url: string;
+  publication_date: Date;
+  tags: NewsTag[];
   created_by: string;
   created_at: Date;
   updated_at: Date;
-  published_at: Date | null;
 }
 
-export interface VerificationResponse {
+export interface NewsVerificationResponse {
   _id: string | ObjectId;
   title: string;
-  content: string;
-  category: string;
-  tags: string[];
-  political_tendency: string;
-  featured_image: string;
-  sources: string[];
-  status: VerificationStatus;
+  classified_as: string;
+  section_url: string;
+  summary: string;
+  body: string;
+  url: string;
+  publication_date: Date;
+  tags: NewsTag[];
   created_by: string;
   created_at: Date;
   updated_at: Date;
-  published_at: Date | null;
 }
 
-export interface CreateVerificationData {
+export interface CreateNewsVerificationData {
   title: string;
-  content?: string;
-  category?: string;
-  tags?: string[];
-  political_tendency?: string;
-  featured_image?: string;
-  sources?: string[];
-  status?: VerificationStatus;
+  classified_as: string;
+  section_url: string;
+  summary: string;
+  body: string;
+  url: string;
+  publication_date: Date;
+  tags: NewsTag[];
 }
 
 /**
- * Create a new verification document
+ * Create a new news verification document
  */
-export function createVerificationDocument(
-  verificationData: CreateVerificationData,
+export function createNewsVerificationDocument(
+  verificationData: CreateNewsVerificationData,
   userEmail: string,
-): Omit<VerificationDocument, '_id'> {
+): Omit<NewsVerificationDocument, '_id'> {
   const now = new Date();
 
   return {
     title: verificationData.title,
-    content: verificationData.content ?? '',
-    category: verificationData.category ?? '',
-    tags: verificationData.tags ?? [],
-    political_tendency: verificationData.political_tendency ?? 'Indeterminada',
-    featured_image: verificationData.featured_image ?? '',
-    sources: verificationData.sources ?? [],
-    status: verificationData.status ?? 'draft',
+    classified_as: verificationData.classified_as,
+    section_url: verificationData.section_url,
+    summary: verificationData.summary,
+    body: verificationData.body,
+    url: verificationData.url,
+    publication_date: verificationData.publication_date,
+    tags: verificationData.tags,
     created_by: userEmail,
     created_at: now,
     updated_at: now,
-    published_at: verificationData.status === 'published' ? now : null,
   };
 }
 
 /**
- * Create verification response (safe to send to client)
+ * Create news verification response (safe to send to client)
  */
-export function createVerificationResponse(
-  verification: VerificationDocument,
-): VerificationResponse {
+export function createNewsVerificationResponse(
+  verification: NewsVerificationDocument,
+): NewsVerificationResponse {
   return {
     _id: verification._id ?? '',
     title: verification.title,
-    content: verification.content,
-    category: verification.category,
+    classified_as: verification.classified_as,
+    section_url: verification.section_url,
+    summary: verification.summary,
+    body: verification.body,
+    url: verification.url,
+    publication_date: verification.publication_date,
     tags: verification.tags,
-    political_tendency: verification.political_tendency,
-    featured_image: verification.featured_image,
-    sources: verification.sources,
-    status: verification.status,
     created_by: verification.created_by,
     created_at: verification.created_at,
     updated_at: verification.updated_at,
-    published_at: verification.published_at,
   };
 }

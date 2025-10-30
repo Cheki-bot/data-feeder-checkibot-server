@@ -1,125 +1,109 @@
 import { Db, ObjectId } from 'mongodb';
 import {
-  createVerificationDocument,
-  createVerificationResponse,
-  CreateVerificationData,
-  VerificationDocument,
-  VerificationResponse,
-  VerificationStatus,
+  createNewsVerificationDocument,
+  createNewsVerificationResponse,
+  CreateNewsVerificationData,
+  NewsVerificationDocument,
+  NewsVerificationResponse,
 } from './verification.model';
 
-export interface VerificationFilters {
-  status?: VerificationStatus;
+export interface NewsVerificationFilters {
+  classified_as?: string;
   created_by?: string;
-  category?: string;
 }
 
 /**
- * Create a new verification
+ * Create a new news verification
  */
-export async function createVerification(
+export async function createNewsVerification(
   db: Db,
-  verificationData: CreateVerificationData,
+  verificationData: CreateNewsVerificationData,
   userEmail: string,
-): Promise<VerificationResponse> {
-  const verificationDoc = createVerificationDocument(verificationData, userEmail);
+): Promise<NewsVerificationResponse> {
+  const verificationDoc = createNewsVerificationDocument(verificationData, userEmail);
 
   const result = await db
-    .collection<VerificationDocument>('verifications')
+    .collection<NewsVerificationDocument>('news_verifications')
     .insertOne(verificationDoc);
   const createdVerification = await db
-    .collection<VerificationDocument>('verifications')
+    .collection<NewsVerificationDocument>('news_verifications')
     .findOne({ _id: result.insertedId });
 
   if (createdVerification === null) {
-    throw new Error('Failed to create verification');
+    throw new Error('Failed to create news verification');
   }
 
-  return createVerificationResponse(createdVerification);
+  return createNewsVerificationResponse(createdVerification);
 }
 
 /**
- * Get all verifications with optional filters
+ * Get all news verifications with optional filters
  */
-export async function getAllVerifications(
+export async function getAllNewsVerifications(
   db: Db,
-  filters: VerificationFilters = {},
-): Promise<VerificationResponse[]> {
-  const query: Partial<VerificationDocument> = {};
+  filters: NewsVerificationFilters = {},
+): Promise<NewsVerificationResponse[]> {
+  const query: Partial<NewsVerificationDocument> = {};
 
-  if (filters.status !== undefined) {
-    query.status = filters.status;
+  if (filters.classified_as !== undefined) {
+    query.classified_as = filters.classified_as;
   }
 
   if (filters.created_by !== undefined) {
     query.created_by = filters.created_by;
   }
 
-  if (filters.category !== undefined) {
-    query.category = filters.category;
-  }
-
   const verifications = await db
-    .collection<VerificationDocument>('verifications')
+    .collection<NewsVerificationDocument>('news_verifications')
     .find(query)
     .sort({ created_at: -1 })
     .toArray();
 
-  return verifications.map(createVerificationResponse);
+  return verifications.map(createNewsVerificationResponse);
 }
 
 /**
- * Get a single verification by ID
+ * Get a single news verification by ID
  */
-export async function getVerificationById(
+export async function getNewsVerificationById(
   db: Db,
   verificationId: string,
-): Promise<VerificationResponse | null> {
+): Promise<NewsVerificationResponse | null> {
   if (!ObjectId.isValid(verificationId)) {
     throw new Error('INVALID_VERIFICATION_ID');
   }
 
   const verification = await db
-    .collection<VerificationDocument>('verifications')
+    .collection<NewsVerificationDocument>('news_verifications')
     .findOne({ _id: new ObjectId(verificationId) });
 
   if (verification === null) {
     return null;
   }
 
-  return createVerificationResponse(verification);
+  return createNewsVerificationResponse(verification);
 }
 
 /**
- * Update a verification
+ * Update a news verification
  */
-export async function updateVerification(
+export async function updateNewsVerification(
   db: Db,
   verificationId: string,
-  updateData: Partial<CreateVerificationData>,
-): Promise<VerificationResponse | null> {
+  updateData: Partial<CreateNewsVerificationData>,
+): Promise<NewsVerificationResponse | null> {
   if (!ObjectId.isValid(verificationId)) {
     throw new Error('INVALID_VERIFICATION_ID');
   }
 
   const now = new Date();
-  const updates: Partial<VerificationDocument> = {
-    ...(updateData as Partial<VerificationDocument>),
+  const updates: Partial<NewsVerificationDocument> = {
+    ...(updateData as Partial<NewsVerificationDocument>),
     updated_at: now,
   };
 
-  // If changing status to published and not already published, set published_at
-  if (updateData.status === 'published') {
-    const existingVerification = await db
-      .collection<VerificationDocument>('verifications')
-      .findOne({ _id: new ObjectId(verificationId) });
-    if (existingVerification !== null && existingVerification.published_at === null) {
-      updates.published_at = now;
-    }
-  }
-
   const result = await db
-    .collection<VerificationDocument>('verifications')
+    .collection<NewsVerificationDocument>('news_verifications')
     .findOneAndUpdate(
       { _id: new ObjectId(verificationId) },
       { $set: updates },
@@ -130,19 +114,19 @@ export async function updateVerification(
     return null;
   }
 
-  return createVerificationResponse(result);
+  return createNewsVerificationResponse(result);
 }
 
 /**
- * Delete a verification
+ * Delete a news verification
  */
-export async function deleteVerification(db: Db, verificationId: string): Promise<boolean> {
+export async function deleteNewsVerification(db: Db, verificationId: string): Promise<boolean> {
   if (!ObjectId.isValid(verificationId)) {
     throw new Error('INVALID_VERIFICATION_ID');
   }
 
   const result = await db
-    .collection<VerificationDocument>('verifications')
+    .collection<NewsVerificationDocument>('news_verifications')
     .deleteOne({ _id: new ObjectId(verificationId) });
 
   return result.deletedCount > 0;
