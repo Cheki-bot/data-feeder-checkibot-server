@@ -72,7 +72,7 @@ async function createDefaultAdmin(db: Db): Promise<void> {
     const passwordHash = await hashPassword(adminPassword);
     const now = new Date();
 
-    const adminUser: Omit<UserDocument, '_id'> = {
+    const adminUser: UserDocument = {
       username: 'admin',
       email: adminEmail,
       password_hash: passwordHash,
