@@ -96,8 +96,9 @@ export const updateVerificationValidation: ValidationChain[] = [
 
   body('tags').optional().isArray().withMessage('Tags must be an array'),
 
-  body('tags.*.name').isString().withMessage('Tag name must be a string'),
-  body('tags.*.url').isURL().withMessage('Tag URL must be a valid URL'),
+  body('tags.*.name').optional().isString().withMessage('Tag name must be a string'),
+
+  body('tags.*.url').optional().isURL().withMessage('Tag URL must be a valid URL'),
 ];
 
 /**
