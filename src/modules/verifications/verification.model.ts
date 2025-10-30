@@ -26,7 +26,7 @@ export interface NewsVerificationDocument {
 }
 
 export interface NewsVerificationResponse {
-  _id: string | ObjectId;
+  _id: ObjectId;
   title: string;
   classified_as: string;
   section_url: string;
@@ -81,8 +81,12 @@ export function createNewsVerificationDocument(
 export function createNewsVerificationResponse(
   verification: NewsVerificationDocument,
 ): NewsVerificationResponse {
+  if (verification._id === undefined) {
+    throw new Error('Cannot create response for news verification without _id');
+  }
+
   return {
-    _id: verification._id ?? '',
+    _id: verification._id,
     title: verification.title,
     classified_as: verification.classified_as,
     section_url: verification.section_url,
