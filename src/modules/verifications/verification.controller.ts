@@ -16,7 +16,12 @@ interface NewsVerificationQuery {
 export async function createVerification(req: AuthRequest, res: Response): Promise<void> {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    res.status(400).json({ errors: errors.array() });
+    res.status(400).json({
+      message: 'Validation failed',
+      ok: false,
+      status: 400,
+      errors: errors.array(),
+    });
     return;
   }
 
@@ -26,7 +31,11 @@ export async function createVerification(req: AuthRequest, res: Response): Promi
     const userEmail = req.currentUser?.email;
 
     if (userEmail === undefined) {
-      res.status(401).json({ message: 'User not authenticated' });
+      res.status(401).json({
+        message: 'User not authenticated',
+        ok: false,
+        status: 401,
+      });
       return;
     }
 
@@ -38,12 +47,19 @@ export async function createVerification(req: AuthRequest, res: Response): Promi
 
     res.status(201).json({
       message: 'News verification created successfully',
-      verification,
+      ok: true,
+      status: 201,
+      data: verification,
     });
   } catch (error) {
     console.error('Create news verification error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ message: 'Server error', error: message });
+    res.status(500).json({
+      message: 'Server error',
+      ok: false,
+      status: 500,
+      error: message,
+    });
   }
 }
 
@@ -72,13 +88,20 @@ export async function getAllVerifications(req: AuthRequest, res: Response): Prom
     const verifications = await VerificationService.getAllNewsVerifications(db, filters);
 
     res.json({
-      verifications,
-      count: verifications.length,
+      message: 'News verifications retrieved successfully',
+      ok: true,
+      status: 200,
+      data: verifications,
     });
   } catch (error) {
     console.error('Get all news verifications error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ message: 'Server error', error: message });
+    res.status(500).json({
+      message: 'Server error',
+      ok: false,
+      status: 500,
+      error: message,
+    });
   }
 }
 
@@ -96,7 +119,11 @@ export async function getVerificationById(req: AuthRequest, res: Response): Prom
     const verification = await VerificationService.getNewsVerificationById(db, id);
 
     if (verification === null) {
-      res.status(404).json({ message: 'News verification not found' });
+      res.status(404).json({
+        message: 'News verification not found',
+        ok: false,
+        status: 404,
+      });
       return;
     }
 
@@ -106,21 +133,39 @@ export async function getVerificationById(req: AuthRequest, res: Response): Prom
       req.currentUser.role !== ROLES.ADMIN &&
       verification.created_by !== req.currentUser.email
     ) {
-      res.status(403).json({ message: 'You can only access your own news verifications' });
+      res.status(403).json({
+        message: 'You can only access your own news verifications',
+        ok: false,
+        status: 403,
+      });
       return;
     }
 
-    res.json(verification);
+    res.json({
+      message: 'News verification retrieved successfully',
+      ok: true,
+      status: 200,
+      data: verification,
+    });
   } catch (error) {
     console.error('Get news verification by ID error:', error);
 
     if (error instanceof Error && error.message === 'INVALID_VERIFICATION_ID') {
-      res.status(400).json({ message: 'Invalid news verification ID format' });
+      res.status(400).json({
+        message: 'Invalid news verification ID format',
+        ok: false,
+        status: 400,
+      });
       return;
     }
 
     const message = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ message: 'Server error', error: message });
+    res.status(500).json({
+      message: 'Server error',
+      ok: false,
+      status: 500,
+      error: message,
+    });
   }
 }
 
@@ -133,7 +178,12 @@ export async function getVerificationById(req: AuthRequest, res: Response): Prom
 export async function updateVerification(req: AuthRequest, res: Response): Promise<void> {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    res.status(400).json({ errors: errors.array() });
+    res.status(400).json({
+      message: 'Validation failed',
+      ok: false,
+      status: 400,
+      errors: errors.array(),
+    });
     return;
   }
 
@@ -145,7 +195,11 @@ export async function updateVerification(req: AuthRequest, res: Response): Promi
     const existingVerification = await VerificationService.getNewsVerificationById(db, id);
 
     if (existingVerification === null) {
-      res.status(404).json({ message: 'News verification not found' });
+      res.status(404).json({
+        message: 'News verification not found',
+        ok: false,
+        status: 404,
+      });
       return;
     }
 
@@ -155,7 +209,11 @@ export async function updateVerification(req: AuthRequest, res: Response): Promi
       req.currentUser.role !== ROLES.ADMIN &&
       existingVerification.created_by !== req.currentUser.email
     ) {
-      res.status(403).json({ message: 'You can only update your own news verifications' });
+      res.status(403).json({
+        message: 'You can only update your own news verifications',
+        ok: false,
+        status: 403,
+      });
       return;
     }
 
@@ -168,18 +226,29 @@ export async function updateVerification(req: AuthRequest, res: Response): Promi
 
     res.json({
       message: 'News verification updated successfully',
-      verification: updatedVerification,
+      ok: true,
+      status: 200,
+      data: updatedVerification,
     });
   } catch (error) {
     console.error('Update news verification error:', error);
 
     if (error instanceof Error && error.message === 'INVALID_VERIFICATION_ID') {
-      res.status(400).json({ message: 'Invalid news verification ID format' });
+      res.status(400).json({
+        message: 'Invalid news verification ID format',
+        ok: false,
+        status: 400,
+      });
       return;
     }
 
     const message = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ message: 'Server error', error: message });
+    res.status(500).json({
+      message: 'Server error',
+      ok: false,
+      status: 500,
+      error: message,
+    });
   }
 }
 
@@ -196,27 +265,48 @@ export async function deleteVerification(req: AuthRequest, res: Response): Promi
     const existingVerification = await VerificationService.getNewsVerificationById(db, id);
 
     if (existingVerification === null) {
-      res.status(404).json({ message: 'News verification not found' });
+      res.status(404).json({
+        message: 'News verification not found',
+        ok: false,
+        status: 404,
+      });
       return;
     }
 
     const deleted = await VerificationService.deleteNewsVerification(db, id);
 
     if (!deleted) {
-      res.status(500).json({ message: 'Failed to delete news verification' });
+      res.status(500).json({
+        message: 'Failed to delete news verification',
+        ok: false,
+        status: 500,
+      });
       return;
     }
 
-    res.json({ message: 'News verification deleted successfully' });
+    res.json({
+      message: 'News verification deleted successfully',
+      ok: true,
+      status: 200,
+    });
   } catch (error) {
     console.error('Delete news verification error:', error);
 
     if (error instanceof Error && error.message === 'INVALID_VERIFICATION_ID') {
-      res.status(400).json({ message: 'Invalid news verification ID format' });
+      res.status(400).json({
+        message: 'Invalid news verification ID format',
+        ok: false,
+        status: 400,
+      });
       return;
     }
 
     const message = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ message: 'Server error', error: message });
+    res.status(500).json({
+      message: 'Server error',
+      ok: false,
+      status: 500,
+      error: message,
+    });
   }
 }

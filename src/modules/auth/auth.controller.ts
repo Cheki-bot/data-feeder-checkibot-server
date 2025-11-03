@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import { validationResult } from 'express-validator';
+import { ObjectId } from 'mongodb';
 import * as AuthService from './auth.service';
 import {
   AuthRequest,
@@ -19,7 +20,12 @@ const LOCKOUT_MINUTES = 60;
 export async function register(req: AuthRequest, res: Response): Promise<void> {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    res.status(400).json({ errors: errors.array() });
+    res.status(400).json({
+      message: 'Validation errors',
+      ok: false,
+      status: 400,
+      errors: errors.array(),
+    });
     return;
   }
 
@@ -30,23 +36,38 @@ export async function register(req: AuthRequest, res: Response): Promise<void> {
 
     res.status(201).json({
       message: 'User registered successfully',
-      user,
+      ok: true,
+      status: 201,
+      data: user,
     });
   } catch (error) {
     console.error('Registration error:', error);
 
     if (error instanceof Error && error.message === 'EMAIL_ALREADY_EXISTS') {
-      res.status(400).json({ message: 'Email already registered' });
+      res.status(400).json({
+        message: 'Email already registered',
+        ok: false,
+        status: 400,
+      });
       return;
     }
 
     if (error instanceof Error && error.message === 'USERNAME_ALREADY_EXISTS') {
-      res.status(400).json({ message: 'Username already taken' });
+      res.status(400).json({
+        message: 'Username already taken',
+        ok: false,
+        status: 400,
+      });
       return;
     }
 
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ message: 'Server error', error: errorMessage });
+    res.status(500).json({
+      message: 'Server error',
+      ok: false,
+      status: 500,
+      error: errorMessage,
+    });
   }
 }
 
@@ -58,7 +79,12 @@ export async function register(req: AuthRequest, res: Response): Promise<void> {
 export async function login(req: AuthRequest, res: Response): Promise<void> {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    res.status(400).json({ errors: errors.array() });
+    res.status(400).json({
+      message: 'Validation errors',
+      ok: false,
+      status: 400,
+      errors: errors.array(),
+    });
     return;
   }
 
@@ -70,7 +96,11 @@ export async function login(req: AuthRequest, res: Response): Promise<void> {
     const user = await db.collection<UserDocument>('users').findOne({ email: normalizedEmail });
 
     if (user === null) {
-      res.status(401).json({ message: 'Invalid credentials' });
+      res.status(401).json({
+        message: 'Invalid credentials',
+        ok: false,
+        status: 401,
+      });
       return;
     }
 
@@ -84,6 +114,8 @@ export async function login(req: AuthRequest, res: Response): Promise<void> {
 
         res.status(403).json({
           message: `Account locked due to too many failed attempts. Try again in ${minutesRemaining} minutes.`,
+          ok: false,
+          status: 403,
           lockout_until: lockoutUntil.toISOString(),
         });
         return;
@@ -110,7 +142,9 @@ export async function login(req: AuthRequest, res: Response): Promise<void> {
 
     res.json({
       message: 'Login successful',
-      ...result,
+      ok: true,
+      status: 200,
+      data: result,
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -118,6 +152,8 @@ export async function login(req: AuthRequest, res: Response): Promise<void> {
     if (error instanceof Error && error.message === 'ACCOUNT_DEACTIVATED') {
       res.status(403).json({
         message: 'Your account has been deactivated. Please contact an administrator.',
+        ok: false,
+        status: 403,
       });
       return;
     }
@@ -129,7 +165,11 @@ export async function login(req: AuthRequest, res: Response): Promise<void> {
       const user = await db.collection<UserDocument>('users').findOne({ email: normalizedEmail });
 
       if (user === null) {
-        res.status(401).json({ message: 'Invalid credentials' });
+        res.status(401).json({
+          message: 'Invalid credentials',
+          ok: false,
+          status: 401,
+        });
         return;
       }
 
@@ -150,6 +190,8 @@ export async function login(req: AuthRequest, res: Response): Promise<void> {
 
         res.status(403).json({
           message: `Account locked due to too many failed attempts. Try again in ${LOCKOUT_MINUTES} minutes.`,
+          ok: false,
+          status: 403,
         });
         return;
       }
@@ -161,12 +203,19 @@ export async function login(req: AuthRequest, res: Response): Promise<void> {
       const attemptsLeft = MAX_LOGIN_ATTEMPTS - failedAttempts;
       res.status(401).json({
         message: `Invalid credentials. ${attemptsLeft} ${attemptsLeft === 1 ? 'attempt' : 'attempts'} remaining.`,
+        ok: false,
+        status: 401,
       });
       return;
     }
 
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ message: 'Server error', error: errorMessage });
+    res.status(500).json({
+      message: 'Server error',
+      ok: false,
+      status: 500,
+      error: errorMessage,
+    });
   }
 }
 
@@ -175,7 +224,12 @@ export async function login(req: AuthRequest, res: Response): Promise<void> {
  * Get current authenticated user's profile
  */
 export function getProfile(req: AuthRequest, res: Response): void {
-  res.json(req.currentUser);
+  res.json({
+    message: 'Profile retrieved successfully',
+    ok: true,
+    status: 200,
+    data: req.currentUser,
+  });
 }
 
 /**
@@ -191,124 +245,146 @@ export async function listUsers(req: AuthRequest, res: Response): Promise<void> 
       .toArray();
 
     res.json({
-      users,
-      count: users.length,
+      message: 'Users retrieved successfully',
+      ok: true,
+      status: 200,
+      data: users,
     });
   } catch (error) {
     console.error('List users error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ message: 'Server error', error: errorMessage });
+    res.status(500).json({
+      message: 'Server error',
+      ok: false,
+      status: 500,
+      error: errorMessage,
+    });
   }
 }
 
 /**
- * PATCH /api/auth/users/:email/deactivate
- * Deactivate a user account (Admin only)
+ * PUT /api/auth/users/:email/deactivate
+ * Deactivate a user (Admin only)
  */
 export async function deactivateUser(req: AuthRequest, res: Response): Promise<void> {
   try {
+    const userEmail = req.params.email;
+
     const db = getDb(req);
-    const { email } = req.params;
-    const normalizedEmail = email.toLowerCase().trim();
-
-    const user = await db.collection<UserDocument>('users').findOne({ email: normalizedEmail });
-
-    if (user === null) {
-      res.status(404).json({ message: 'User not found' });
-      return;
-    }
-
-    if (user.is_active === false) {
-      res.status(400).json({ message: 'User is already deactivated' });
-      return;
-    }
-
-    await db.collection<UserDocument>('users').updateOne(
-      { email: normalizedEmail },
+    const result = await db.collection<UserDocument>('users').updateOne(
+      { email: userEmail },
       {
         $set: {
           is_active: false,
           updated_at: new Date(),
         },
-      },
+      }
     );
 
-    res.json({ message: `User ${email} has been deactivated` });
+    if (result.matchedCount === 0) {
+      res.status(404).json({
+        message: 'User not found',
+        ok: false,
+        status: 404,
+      });
+      return;
+    }
+
+    res.json({
+      message: 'User deactivated successfully',
+      ok: true,
+      status: 200,
+    });
   } catch (error) {
     console.error('Deactivate user error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ message: 'Server error', error: errorMessage });
+    res.status(500).json({
+      message: 'Server error',
+      ok: false,
+      status: 500,
+      error: errorMessage,
+    });
   }
 }
 
 /**
- * PATCH /api/auth/users/:email/activate
- * Activate a user account (Admin only)
+ * PUT /api/auth/users/:email/activate
+ * Activate a user (Admin only)
  */
 export async function activateUser(req: AuthRequest, res: Response): Promise<void> {
   try {
+    const userEmail = req.params.email;
+
     const db = getDb(req);
-    const { email } = req.params;
-    const normalizedEmail = email.toLowerCase().trim();
-
-    const user = await db.collection<UserDocument>('users').findOne({ email: normalizedEmail });
-
-    if (user === null) {
-      res.status(404).json({ message: 'User not found' });
-      return;
-    }
-
-    if (user.is_active === true) {
-      res.status(400).json({ message: 'User is already active' });
-      return;
-    }
-
-    await db.collection<UserDocument>('users').updateOne(
-      { email: normalizedEmail },
+    const result = await db.collection<UserDocument>('users').updateOne(
+      { email: userEmail },
       {
         $set: {
           is_active: true,
           updated_at: new Date(),
         },
-      },
+      }
     );
 
-    res.json({ message: `User ${email} has been activated` });
+    if (result.matchedCount === 0) {
+      res.status(404).json({
+        message: 'User not found',
+        ok: false,
+        status: 404,
+      });
+      return;
+    }
+
+    res.json({
+      message: 'User activated successfully',
+      ok: true,
+      status: 200,
+    });
   } catch (error) {
     console.error('Activate user error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ message: 'Server error', error: errorMessage });
+    res.status(500).json({
+      message: 'Server error',
+      ok: false,
+      status: 500,
+      error: errorMessage,
+    });
   }
 }
 
 /**
  * DELETE /api/auth/users/:email
- * Delete a user account permanently (Admin only)
+ * Delete a user (Admin only)
  */
 export async function deleteUser(req: AuthRequest, res: Response): Promise<void> {
   try {
+    const userEmail = req.params.email;
+
     const db = getDb(req);
-    const { email } = req.params;
-    const normalizedEmail = email.toLowerCase().trim();
-
-    const user = await db.collection<UserDocument>('users').findOne({ email: normalizedEmail });
-
-    if (user === null) {
-      res.status(404).json({ message: 'User not found' });
-      return;
-    }
-
-    const result = await db.collection<UserDocument>('users').deleteOne({ email: normalizedEmail });
+    const result = await db.collection<UserDocument>('users').deleteOne({ email: userEmail });
 
     if (result.deletedCount === 0) {
-      res.status(500).json({ message: 'Failed to delete user' });
+      res.status(404).json({
+        message: 'User not found',
+        ok: false,
+        status: 404,
+      });
       return;
     }
 
-    res.json({ message: `User ${email} has been deleted permanently` });
+    res.json({
+      message: 'User deleted successfully',
+      ok: true,
+      status: 200,
+    });
   } catch (error) {
     console.error('Delete user error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ message: 'Server error', error: errorMessage });
+    res.status(500).json({
+      message: 'Server error',
+      ok: false,
+      status: 500,
+      error: errorMessage,
+    });
   }
 }
