@@ -45,7 +45,7 @@ const router = Router();
  * /auth/register:
  *   post:
  *     summary: Register a new user
- *     description: Create a new user account with email and password
+ *     description: Create a new user account with username, email and password
  *     tags: [Authentication]
  *     requestBody:
  *       required: true
@@ -54,19 +54,36 @@ const router = Router();
  *           schema:
  *             type: object
  *             required:
+ *               - username
  *               - email
  *               - password
- *               - name
+ *               - confirmPassword
  *             properties:
+ *               username:
+ *                 type: string
+ *                 minLength: 3
+ *                 maxLength: 30
+ *                 pattern: '^[a-zA-Z0-9_]+$'
+ *                 description: Username (letters, numbers and underscores only)
+ *                 example: john_doe
  *               email:
  *                 type: string
  *                 format: email
+ *                 example: user@example.com
  *               password:
  *                 type: string
  *                 minLength: 8
- *               name:
+ *                 maxLength: 72
+ *                 example: SecurePass123
+ *               confirmPassword:
  *                 type: string
- *                 minLength: 2
+ *                 description: Must match password
+ *                 example: SecurePass123
+ *               role:
+ *                 type: string
+ *                 enum: [user, admin]
+ *                 description: Optional - defaults to 'user'
+ *                 example: user
  *     responses:
  *       201:
  *         description: User registered successfully
@@ -77,12 +94,45 @@ const router = Router();
  *               properties:
  *                 message:
  *                   type: string
- *                 user:
+ *                   example: User registered successfully
+ *                 ok:
+ *                   type: boolean
+ *                   example: true
+ *                 status:
+ *                   type: number
+ *                   example: 201
+ *                 data:
  *                   $ref: '#/components/schemas/User'
  *       400:
  *         description: Validation error or user already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 400
  *       500:
  *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 500
  */
 // Public routes - Register
 router.post('/register', registerValidation, AuthController.register);
@@ -107,8 +157,10 @@ router.post('/register', registerValidation, AuthController.register);
  *               email:
  *                 type: string
  *                 format: email
+ *                 example: user@example.com
  *               password:
  *                 type: string
+ *                 example: SecurePass123
  *     responses:
  *       200:
  *         description: Login successful
@@ -119,18 +171,80 @@ router.post('/register', registerValidation, AuthController.register);
  *               properties:
  *                 message:
  *                   type: string
- *                 token:
- *                   type: string
- *                 user:
- *                   $ref: '#/components/schemas/User'
+ *                   example: Login successful
+ *                 ok:
+ *                   type: boolean
+ *                   example: true
+ *                 status:
+ *                   type: number
+ *                   example: 200
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     token:
+ *                       type: string
+ *                     user:
+ *                       $ref: '#/components/schemas/User'
  *       400:
  *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 400
  *       401:
  *         description: Invalid credentials
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 401
  *       403:
  *         description: Account locked or deactivated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 403
  *       500:
  *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 500
  */
 // Public routes - Login
 router.post('/login', loginValidation, AuthController.login);
@@ -150,11 +264,49 @@ router.post('/login', loginValidation, AuthController.login);
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/User'
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Profile retrieved successfully
+ *                 ok:
+ *                   type: boolean
+ *                   example: true
+ *                 status:
+ *                   type: number
+ *                   example: 200
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
  *       401:
  *         description: Unauthorized - invalid or missing token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 401
  *       500:
  *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 500
  */
 // Protected routes - Get profile
 router.get('/me', authenticateToken, getCurrentUser, AuthController.getProfile);
@@ -176,16 +328,64 @@ router.get('/me', authenticateToken, getCurrentUser, AuthController.getProfile);
  *             schema:
  *               type: object
  *               properties:
- *                 users:
+ *                 message:
+ *                   type: string
+ *                   example: Users retrieved successfully
+ *                 ok:
+ *                   type: boolean
+ *                   example: true
+ *                 status:
+ *                   type: number
+ *                   example: 200
+ *                 data:
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/User'
  *       401:
  *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 401
  *       403:
  *         description: Forbidden - admin only
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 403
  *       500:
  *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 500
  */
 // Admin-only routes - List users
 router.get('/users', authenticateToken, getCurrentUser, requireAdmin, AuthController.listUsers);
@@ -217,16 +417,88 @@ router.get('/users', authenticateToken, getCurrentUser, requireAdmin, AuthContro
  *               properties:
  *                 message:
  *                   type: string
+ *                   example: User deactivated successfully
+ *                 ok:
+ *                   type: boolean
+ *                   example: true
+ *                 status:
+ *                   type: number
+ *                   example: 200
  *       400:
  *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 400
  *       401:
  *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 401
  *       403:
  *         description: Forbidden - admin only
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 403
  *       404:
  *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 404
  *       500:
  *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 500
  */
 // Admin-only routes - Deactivate user
 router.patch(
@@ -265,16 +537,88 @@ router.patch(
  *               properties:
  *                 message:
  *                   type: string
+ *                   example: User activated successfully
+ *                 ok:
+ *                   type: boolean
+ *                   example: true
+ *                 status:
+ *                   type: number
+ *                   example: 200
  *       400:
  *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 400
  *       401:
  *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 401
  *       403:
  *         description: Forbidden - admin only
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 403
  *       404:
  *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 404
  *       500:
  *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 500
  */
 // Admin-only routes - Activate user
 router.patch(
@@ -313,16 +657,88 @@ router.patch(
  *               properties:
  *                 message:
  *                   type: string
+ *                   example: User deleted successfully
+ *                 ok:
+ *                   type: boolean
+ *                   example: true
+ *                 status:
+ *                   type: number
+ *                   example: 200
  *       400:
  *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 400
  *       401:
  *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 401
  *       403:
  *         description: Forbidden - admin only
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 403
  *       404:
  *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 404
  *       500:
  *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 500
  */
 // Admin-only routes - Delete user
 router.delete(
