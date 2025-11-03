@@ -15,6 +15,7 @@ export interface ElectoralCalendarFilters {
 /**
  * Create a new electoral calendar
  */
+
 export async function createElectoralCalendar(
   db: Db,
   calendarData: CreateElectoralCalendarData,
@@ -34,9 +35,6 @@ export async function createElectoralCalendar(
   return createElectoralCalendarResponse(createdCalendar);
 }
 
-/**
- * Get all electoral calendars with optional filters
- */
 export async function getAllElectoralCalendars(
   db: Db,
   filters: ElectoralCalendarFilters = {},
@@ -63,6 +61,7 @@ export async function getAllElectoralCalendars(
 /**
  * Get a single electoral calendar by ID
  */
+
 export async function getElectoralCalendarById(
   db: Db,
   calendarId: string,
@@ -85,6 +84,7 @@ export async function getElectoralCalendarById(
 /**
  * Update an electoral calendar
  */
+
 export async function updateElectoralCalendar(
   db: Db,
   calendarId: string,
@@ -118,6 +118,7 @@ export async function updateElectoralCalendar(
 /**
  * Delete an electoral calendar
  */
+
 export async function deleteElectoralCalendar(db: Db, calendarId: string): Promise<boolean> {
   if (!ObjectId.isValid(calendarId)) {
     throw new Error('INVALID_CALENDAR_ID');

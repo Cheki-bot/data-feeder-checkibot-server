@@ -2,7 +2,6 @@ import { ObjectId } from 'mongodb';
 
 /**
  * Electoral Calendar Model
- * Represents an electoral calendar with events and signatures
  */
 
 export interface CalendarSignature {
@@ -68,6 +67,7 @@ export interface CreateElectoralCalendarData {
 /**
  * Create a new electoral calendar document
  */
+
 export function createElectoralCalendarDocument(
   calendarData: CreateElectoralCalendarData,
   userEmail: string,
@@ -90,8 +90,9 @@ export function createElectoralCalendarDocument(
 }
 
 /**
- * Create electoral calendar response (safe to send to client)
+ * Create electoral calendar response
  */
+
 export function createElectoralCalendarResponse(
   calendar: ElectoralCalendarDocument,
 ): ElectoralCalendarResponse {
