@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { registerValidation, loginValidation, emailParamValidation } from '../../validators/auth';
+import { registerValidation, loginValidation } from '../../validators/auth';
 import { authenticateToken, getCurrentUser, requireAdmin } from '../../middleware/auth';
 import * as AuthController from './auth.controller';
 
@@ -392,7 +392,7 @@ router.get('/users', authenticateToken, getCurrentUser, requireAdmin, AuthContro
 
 /**
  * @openapi
- * /auth/users/{email}/deactivate:
+ * /auth/users/{id}/deactivate:
  *   patch:
  *     summary: Deactivate a user
  *     description: Deactivate a user account (Admin only)
@@ -401,12 +401,12 @@ router.get('/users', authenticateToken, getCurrentUser, requireAdmin, AuthContro
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: email
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
- *           format: email
- *         description: User email address
+ *         description: User ID (MongoDB ObjectId)
+ *         example: 507f1f77bcf86cd799439011
  *     responses:
  *       200:
  *         description: User deactivated successfully
@@ -502,8 +502,7 @@ router.get('/users', authenticateToken, getCurrentUser, requireAdmin, AuthContro
  */
 // Admin-only routes - Deactivate user
 router.patch(
-  '/users/:email/deactivate',
-  emailParamValidation,
+  '/users/:id/deactivate',
   authenticateToken,
   getCurrentUser,
   requireAdmin,
@@ -512,7 +511,7 @@ router.patch(
 
 /**
  * @openapi
- * /auth/users/{email}/activate:
+ * /auth/users/{id}/activate:
  *   patch:
  *     summary: Activate a user
  *     description: Activate a previously deactivated user account (Admin only)
@@ -521,12 +520,12 @@ router.patch(
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: email
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
- *           format: email
- *         description: User email address
+ *         description: User ID (MongoDB ObjectId)
+ *         example: 507f1f77bcf86cd799439011
  *     responses:
  *       200:
  *         description: User activated successfully
@@ -622,8 +621,7 @@ router.patch(
  */
 // Admin-only routes - Activate user
 router.patch(
-  '/users/:email/activate',
-  emailParamValidation,
+  '/users/:id/activate',
   authenticateToken,
   getCurrentUser,
   requireAdmin,
@@ -632,7 +630,7 @@ router.patch(
 
 /**
  * @openapi
- * /auth/users/{email}:
+ * /auth/users/{id}:
  *   delete:
  *     summary: Delete a user
  *     description: Permanently delete a user account (Admin only)
@@ -641,12 +639,12 @@ router.patch(
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: email
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
- *           format: email
- *         description: User email address
+ *         description: User ID (MongoDB ObjectId)
+ *         example: 507f1f77bcf86cd799439011
  *     responses:
  *       200:
  *         description: User deleted successfully
@@ -742,8 +740,7 @@ router.patch(
  */
 // Admin-only routes - Delete user
 router.delete(
-  '/users/:email',
-  emailParamValidation,
+  '/users/:id',
   authenticateToken,
   getCurrentUser,
   requireAdmin,

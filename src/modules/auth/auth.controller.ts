@@ -263,22 +263,32 @@ export async function listUsers(req: AuthRequest, res: Response): Promise<void> 
 }
 
 /**
- * PUT /api/auth/users/:email/deactivate
+ * PUT /api/auth/users/:id/deactivate
  * Deactivate a user (Admin only)
  */
 export async function deactivateUser(req: AuthRequest, res: Response): Promise<void> {
   try {
-    const userEmail = req.params.email;
+    const userId = req.params.id;
+
+    // Validate ObjectId format
+    if (!ObjectId.isValid(userId)) {
+      res.status(400).json({
+        message: 'Invalid user ID format',
+        ok: false,
+        status: 400,
+      });
+      return;
+    }
 
     const db = getDb(req);
     const result = await db.collection<UserDocument>('users').updateOne(
-      { email: userEmail },
+      { _id: new ObjectId(userId) },
       {
         $set: {
           is_active: false,
           updated_at: new Date(),
         },
-      }
+      },
     );
 
     if (result.matchedCount === 0) {
@@ -308,22 +318,32 @@ export async function deactivateUser(req: AuthRequest, res: Response): Promise<v
 }
 
 /**
- * PUT /api/auth/users/:email/activate
+ * PUT /api/auth/users/:id/activate
  * Activate a user (Admin only)
  */
 export async function activateUser(req: AuthRequest, res: Response): Promise<void> {
   try {
-    const userEmail = req.params.email;
+    const userId = req.params.id;
+
+    // Validate ObjectId format
+    if (!ObjectId.isValid(userId)) {
+      res.status(400).json({
+        message: 'Invalid user ID format',
+        ok: false,
+        status: 400,
+      });
+      return;
+    }
 
     const db = getDb(req);
     const result = await db.collection<UserDocument>('users').updateOne(
-      { email: userEmail },
+      { _id: new ObjectId(userId) },
       {
         $set: {
           is_active: true,
           updated_at: new Date(),
         },
-      }
+      },
     );
 
     if (result.matchedCount === 0) {
@@ -353,15 +373,27 @@ export async function activateUser(req: AuthRequest, res: Response): Promise<voi
 }
 
 /**
- * DELETE /api/auth/users/:email
+ * DELETE /api/auth/users/:id
  * Delete a user (Admin only)
  */
 export async function deleteUser(req: AuthRequest, res: Response): Promise<void> {
   try {
-    const userEmail = req.params.email;
+    const userId = req.params.id;
+
+    // Validate ObjectId format
+    if (!ObjectId.isValid(userId)) {
+      res.status(400).json({
+        message: 'Invalid user ID format',
+        ok: false,
+        status: 400,
+      });
+      return;
+    }
 
     const db = getDb(req);
-    const result = await db.collection<UserDocument>('users').deleteOne({ email: userEmail });
+    const result = await db
+      .collection<UserDocument>('users')
+      .deleteOne({ _id: new ObjectId(userId) });
 
     if (result.deletedCount === 0) {
       res.status(404).json({
