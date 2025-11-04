@@ -49,7 +49,75 @@ const partiesRouter = Router();
 
 partiesRouter.get('/', PoliticalPartiesController.getPoliticalParties);
 
-//generate docs swagger for this route
+/**
+ * @openapi
+ * /political-parties/{candidacyId}:
+ *   get:
+ *     summary: Obtener una candidatura por su ID
+ *     tags:
+ *       - Partidos Políticos
+ *     parameters:
+ *       - in: path
+ *         name: candidacyId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la candidatura a obtener
+ *     responses:
+ *       200:
+ *         description: Candidatura obtenida exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Candidacy fetched successfully
+ *                 ok:
+ *                   type: boolean
+ *                   example: true
+ *                 status:
+ *                   type: integer
+ *                   example: 200
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: 60d5f9f5f1d2c4b5d6e8f9a0
+ *                     name:
+ *                       type: string
+ *                       example: Candidatura 1
+ *                     status:
+ *                       type: string
+ *                       example: active
+ *                     government_plan:
+ *                       type: string
+ *                       example: Plan de gobierno de la candidatura 1
+ *                     election_id:
+ *                       type: string
+ *                       example: 60d5f9f5f1d2c4b5d6e8f9a1
+ *                   party:
+ *                     type: object
+ *                     properties:
+ *                       name:
+ *                         type: string
+ *                         example: Partido Ejemplo
+ *                       sigla:
+ *                         type: string
+ *                         example: PE
+ *                       description:
+ *                         type: string
+ *                         example: Descripción del partido ejemplo
+ *                       founded:
+ *                         type: string
+ *                         format: date-time
+ *                         example: 2000-01-01T00:00:00.000Z
+ */
+
+partiesRouter.get('/:candidacyId', PoliticalPartiesController.getCandidacyByIdController);
+
 /**
  * @openapi
  * /political-parties:
@@ -136,7 +204,7 @@ partiesRouter.get('/', PoliticalPartiesController.getPoliticalParties);
  */
 
 partiesRouter.post('/', PoliticalPartiesController.createPoliticalPartyController);
-// generate swagger doc for put route to update candidacy by id
+
 /**
  * @openapi
  * /political-parties/{candidacyId}:
@@ -184,7 +252,6 @@ partiesRouter.post('/', PoliticalPartiesController.createPoliticalPartyControlle
 
 partiesRouter.put('/:candidacyId', PoliticalPartiesController.updateCandidacyController);
 
-// generate swagger doc for delete route to delete candidacy by id
 /**
  * @openapi
  * /political-parties/{candidacyId}:
@@ -220,8 +287,7 @@ partiesRouter.put('/:candidacyId', PoliticalPartiesController.updateCandidacyCon
  *                   type: null
  *                   example: null
  */
-partiesRouter.delete('/:candidacyId', PoliticalPartiesController.deleteCandidacyController);
 
-partiesRouter.get('/:candidacyId', PoliticalPartiesController.getCandidacyByIdController);
+partiesRouter.delete('/:candidacyId', PoliticalPartiesController.deleteCandidacyController);
 
 export default partiesRouter;
