@@ -121,7 +121,6 @@ export async function updateCandidacyController(req: Request, res: Response): Pr
     }
 
     const updatedCandidacy = await updateCandidacyService(db, candidacyId, body);
-    console.log('log updatecandidacy: ', updatedCandidacy);
 
     if (!updatedCandidacy) {
       return res.status(404).json({
