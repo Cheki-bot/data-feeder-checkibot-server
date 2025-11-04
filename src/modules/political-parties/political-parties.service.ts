@@ -1,5 +1,5 @@
 import { CandidacyStatus, ICandidacy, IPoliticalParty, IPolitician } from '@/types';
-import { Db } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 
 export async function getPoliticalPartiesService(db: Db): Promise<IPoliticalParty[]> {
   const candidacies = await db
@@ -57,4 +57,40 @@ export async function createPoliticalPartyService(
     },
     founded: Candidacie.founded,
   };
+}
+
+export async function updateCandidacyService(
+  db: Db,
+  candidacyId: string,
+  body: Partial<ICandidacy>,
+): Promise<ICandidacy | null> {
+  if (!ObjectId.isValid(candidacyId)) {
+    throw new Error('Invalid candidacy ID');
+  }
+
+  const updates = Object.fromEntries(
+    Object.entries(body).filter(([, value]) => value !== undefined),
+  ) as Partial<ICandidacy>;
+
+  const result = await db
+    .collection<ICandidacy>('candidacies')
+    .findOneAndUpdate(
+      { _id: new ObjectId(candidacyId) },
+      { $set: updates },
+      { returnDocument: 'after' },
+    );
+
+  return result;
+}
+
+export async function deleteCandidacyService(db: Db, candidacyId: string): Promise<boolean> {
+  if (!ObjectId.isValid(candidacyId)) {
+    throw new Error('Invalid candidacy ID');
+  }
+
+  const result = await db
+    .collection<ICandidacy>('candidacies')
+    .deleteOne({ _id: new ObjectId(candidacyId) });
+
+  return result.deletedCount === 1;
 }

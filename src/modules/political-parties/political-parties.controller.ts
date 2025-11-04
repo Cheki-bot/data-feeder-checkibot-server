@@ -1,10 +1,12 @@
+import { ICandidacy } from '@/types';
 import { Request, Response } from 'express';
+import { Db } from 'mongodb';
 import {
   createPoliticalPartyService,
+  deleteCandidacyService,
   getPoliticalPartiesService,
+  updateCandidacyService,
 } from './political-parties.service';
-import { Db } from 'mongodb';
-import { ICandidacy } from '@/types';
 
 export async function getPoliticalParties(req: Request, res: Response): Promise<Response> {
   try {
@@ -92,3 +94,99 @@ export async function createPoliticalPartyController(
     });
   }
 }
+
+export async function updateCandidacyController(req: Request, res: Response): Promise<Response> {
+  try {
+    const db = (req.app.locals as { db: Db }).db;
+    const candidacyId = req.params.candidacyId;
+    const body = req.body as Partial<ICandidacy>;
+
+    if (!candidacyId) {
+      return res.status(400).json({
+        ok: false,
+        status: 400,
+        message: 'Candidacy ID is required',
+        data: null,
+      });
+    }
+
+    // Validar que el body no esté vacío
+    if (Object.keys(body).length === 0) {
+      return res.status(400).json({
+        ok: false,
+        status: 400,
+        message: 'No data provided for update',
+        data: null,
+      });
+    }
+
+    const updatedCandidacy = await updateCandidacyService(db, candidacyId, body);
+    console.log('log updatecandidacy: ', updatedCandidacy);
+
+    if (!updatedCandidacy) {
+      return res.status(404).json({
+        ok: false,
+        status: 404,
+        message: 'Candidacy not found or update failed',
+        data: null,
+      });
+    }
+
+    return res.status(200).json({
+      ok: true,
+      status: 200,
+      message: 'Candidacy updated successfully',
+      data: updatedCandidacy,
+    });
+  } catch (error) {
+    console.error('Error updating candidacy:', error);
+    return res.status(500).json({
+      ok: false,
+      status: 500,
+      message: 'Internal server error',
+      data: null,
+    });
+  }
+}
+
+export const deleteCandidacyController = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const db = (req.app.locals as { db: Db }).db;
+    const candidacyId = req.params.candidacyId;
+
+    if (!candidacyId) {
+      return res.status(400).json({
+        ok: false,
+        status: 400,
+        message: 'Candidacy ID is required',
+        data: null,
+      });
+    }
+
+    const result = await deleteCandidacyService(db, candidacyId);
+
+    if (!result) {
+      return res.status(404).json({
+        ok: false,
+        status: 404,
+        message: 'Candidacy not found or deletion failed',
+        data: null,
+      });
+    }
+
+    return res.status(200).json({
+      ok: true,
+      status: 200,
+      message: 'Candidacy deleted successfully',
+      data: null,
+    });
+  } catch (error) {
+    console.error('Error deleting candidacy:', error);
+    return res.status(500).json({
+      ok: false,
+      status: 500,
+      message: 'Internal server error',
+      data: null,
+    });
+  }
+};

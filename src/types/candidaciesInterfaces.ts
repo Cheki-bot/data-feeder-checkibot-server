@@ -1,3 +1,5 @@
+import { ObjectId } from 'mongodb';
+
 export enum CandidacyStatus {
   ACTIVE = 'habilitado',
   INACTIVE = 'inhabilitado',
@@ -28,7 +30,7 @@ export interface IPoliticalParty {
 }
 
 export interface ICandidacy {
-  _id?: string;
+  _id?: ObjectId;
   party: IPoliticalParty;
   candidates: IPolitician[];
   status: CandidacyStatus;
