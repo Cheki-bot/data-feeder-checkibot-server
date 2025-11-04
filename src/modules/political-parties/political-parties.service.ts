@@ -94,3 +94,17 @@ export async function deleteCandidacyService(db: Db, candidacyId: string): Promi
 
   return result.deletedCount === 1;
 }
+
+export async function getCandidacyByIdService(
+  db: Db,
+  candidacyId: string,
+): Promise<ICandidacy | null> {
+  try {
+    return await db
+      .collection<ICandidacy>('candidacies')
+      .findOne({ _id: new ObjectId(candidacyId) });
+  } catch (error) {
+    console.error('Error fetching candidacy by ID:', error);
+    return null;
+  }
+}

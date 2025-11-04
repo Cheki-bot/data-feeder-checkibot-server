@@ -222,4 +222,6 @@ partiesRouter.put('/:candidacyId', PoliticalPartiesController.updateCandidacyCon
  */
 partiesRouter.delete('/:candidacyId', PoliticalPartiesController.deleteCandidacyController);
 
+partiesRouter.get('/:candidacyId', PoliticalPartiesController.getCandidacyByIdController);
+
 export default partiesRouter;

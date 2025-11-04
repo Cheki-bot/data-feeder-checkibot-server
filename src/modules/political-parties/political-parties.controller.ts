@@ -4,6 +4,7 @@ import { Db } from 'mongodb';
 import {
   createPoliticalPartyService,
   deleteCandidacyService,
+  getCandidacyByIdService,
   getPoliticalPartiesService,
   updateCandidacyService,
 } from './political-parties.service';
@@ -110,7 +111,6 @@ export async function updateCandidacyController(req: Request, res: Response): Pr
       });
     }
 
-    // Validar que el body no esté vacío
     if (Object.keys(body).length === 0) {
       return res.status(400).json({
         ok: false,
@@ -181,6 +181,51 @@ export const deleteCandidacyController = async (req: Request, res: Response): Pr
     });
   } catch (error) {
     console.error('Error deleting candidacy:', error);
+    return res.status(500).json({
+      ok: false,
+      status: 500,
+      message: 'Internal server error',
+      data: null,
+    });
+  }
+};
+
+export const getCandidacyByIdController = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
+  try {
+    const db = (req.app.locals as { db: Db }).db;
+    const candidacyId = req.params.candidacyId;
+
+    if (!candidacyId) {
+      return res.status(400).json({
+        ok: false,
+        status: 400,
+        message: 'Candidacy ID is required',
+        data: null,
+      });
+    }
+
+    const candidacy = await getCandidacyByIdService(db, candidacyId);
+
+    if (!candidacy) {
+      return res.status(404).json({
+        ok: false,
+        status: 404,
+        message: 'Candidacy not found or retrieval failed',
+        data: null,
+      });
+    }
+
+    return res.status(200).json({
+      ok: true,
+      status: 200,
+      message: 'Candidacy fetched successfully',
+      data: candidacy,
+    });
+  } catch (error) {
+    console.error('Error fetching candidacy:', error);
     return res.status(500).json({
       ok: false,
       status: 500,
