@@ -48,5 +48,6 @@ const partiesRouter = Router();
  */
 
 partiesRouter.get('/', PoliticalPartiesController.getPoliticalParties);
+partiesRouter.post('/', PoliticalPartiesController.createPoliticalPartyController);
 
 export default partiesRouter;

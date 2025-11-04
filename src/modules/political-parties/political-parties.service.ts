@@ -1,47 +1,60 @@
+import { CandidacyStatus, ICandidacy, IPoliticalParty, IPolitician } from '@/types';
 import { Db } from 'mongodb';
 
-interface RawPoliticalParty {
-  _id: string;
-  party?: {
-    name: string;
-    sigla: string;
-    founded?: string;
-  };
-}
-
-interface PoliticalParty {
-  id: string;
-  name: string;
-  abbreviation: string;
-  founded?: Date;
-}
-
-export async function getPoliticalPartiesService(db: Db): Promise<PoliticalParty[]> {
+export async function getPoliticalPartiesService(db: Db): Promise<IPoliticalParty[]> {
   const candidacies = await db
-    .collection<RawPoliticalParty>('candidacies')
+    .collection<ICandidacy>('candidacies')
     .find({ party: { $exists: true } })
     .toArray();
 
-  const partyMap = new Map<string, PoliticalParty>();
+  const partyMap = new Map<string, IPoliticalParty>();
 
   candidacies.forEach(doc => {
-    if (doc.party) {
-      const id = doc._id.toString();
-      const name = doc.party.name;
-      const abbreviation = doc.party.sigla;
-      let founded: Date | undefined;
-      const foundedStr = doc.party.founded;
+    const id = doc._id.toString();
+    const name = doc.party.name;
+    const sigla = doc.party.sigla;
+    const description = doc.party.description;
 
-      if (typeof foundedStr === 'string' && foundedStr.trim() !== '') {
-        const parsed = new Date(foundedStr);
-        if (!isNaN(parsed.getTime())) {
-          founded = parsed;
-        }
-      }
-
-      partyMap.set(name, { id, name, abbreviation, founded });
-    }
+    partyMap.set(name, { id, name, sigla, description });
   });
 
   return Array.from(partyMap.values());
+}
+
+export async function createPoliticalPartyService(
+  db: Db,
+  party: IPoliticalParty,
+  candidates: IPolitician[],
+  status: CandidacyStatus,
+  government_plan: string,
+  election_id: string,
+  founded?: Date,
+): Promise<ICandidacy> {
+  const Candidacie: ICandidacy = {
+    candidates: candidates,
+    status: status,
+    government_plan: government_plan,
+    election_id: election_id,
+    party: {
+      name: party.name,
+      sigla: party.sigla,
+      description: party.description,
+    },
+    founded: founded ? founded.toISOString() : undefined,
+  };
+
+  await db.collection<ICandidacy>('candidacies').insertOne(Candidacie);
+
+  return {
+    status: Candidacie.status,
+    government_plan: Candidacie.government_plan,
+    election_id: Candidacie.election_id,
+    candidates: Candidacie.candidates,
+    party: {
+      name: party.name,
+      sigla: party.sigla,
+      description: party.description,
+    },
+    founded: Candidacie.founded,
+  };
 }

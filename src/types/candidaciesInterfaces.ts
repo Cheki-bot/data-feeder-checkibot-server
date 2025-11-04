@@ -21,6 +21,7 @@ export interface IPolitician {
 }
 
 export interface IPoliticalParty {
+  id?: string;
   name: string;
   sigla: string;
   description?: string;
@@ -33,6 +34,7 @@ export interface ICandidacy {
   status: CandidacyStatus;
   government_plan: string;
   election_id: string;
+  founded?: string;
 }
 
 export interface IElection {
