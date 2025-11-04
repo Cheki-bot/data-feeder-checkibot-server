@@ -183,6 +183,43 @@ partiesRouter.post('/', PoliticalPartiesController.createPoliticalPartyControlle
  */
 
 partiesRouter.put('/:candidacyId', PoliticalPartiesController.updateCandidacyController);
+
+// generate swagger doc for delete route to delete candidacy by id
+/**
+ * @openapi
+ * /political-parties/{candidacyId}:
+ *   delete:
+ *     summary: Eliminar una candidatura existente
+ *     tags:
+ *       - Partidos Políticos
+ *     parameters:
+ *       - in: path
+ *         name: candidacyId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la candidatura a eliminar
+ *     responses:
+ *       200:
+ *         description: Candidatura eliminada exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Candidacy deleted successfully
+ *                 ok:
+ *                   type: boolean
+ *                   example: true
+ *                 status:
+ *                   type: integer
+ *                   example: 200
+ *                 data:
+ *                   type: null
+ *                   example: null
+ */
 partiesRouter.delete('/:candidacyId', PoliticalPartiesController.deleteCandidacyController);
 
 export default partiesRouter;
