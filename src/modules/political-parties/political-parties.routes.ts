@@ -10,6 +10,8 @@ const partiesRouter = Router();
  *     summary: Obtener todos los partidos políticos
  *     tags:
  *       - Partidos Políticos
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Lista de partidos políticos
@@ -56,6 +58,8 @@ partiesRouter.get('/', PoliticalPartiesController.getPoliticalParties);
  *     summary: Obtener una candidatura por su ID
  *     tags:
  *       - Partidos Políticos
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: candidacyId
@@ -125,6 +129,8 @@ partiesRouter.get('/:candidacyId', PoliticalPartiesController.getCandidacyByIdCo
  *     summary: Crear un nuevo partido político
  *     tags:
  *       - Partidos Políticos
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -212,6 +218,8 @@ partiesRouter.post('/', PoliticalPartiesController.createPoliticalPartyControlle
  *     summary: Actualizar una candidatura existente
  *     tags:
  *       - Partidos Políticos
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: candidacyId
@@ -259,6 +267,8 @@ partiesRouter.put('/:candidacyId', PoliticalPartiesController.updateCandidacyCon
  *     summary: Eliminar una candidatura existente
  *     tags:
  *       - Partidos Políticos
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: candidacyId

@@ -4,6 +4,7 @@ import authRouter from '../modules/auth/auth.routes';
 import verificationsRouter from '../modules/verifications/verification.routes';
 import categoriesRouter from '../modules/categories/categories.routes';
 import partiesRouter from '../modules/political-parties/political-parties.routes';
+import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 
@@ -11,6 +12,6 @@ router.use('/health', healthRouter);
 router.use('/auth', authRouter);
 router.use('/verifications', verificationsRouter);
 router.use('/categories', categoriesRouter);
-router.use('/political-parties', partiesRouter);
+router.use('/political-parties', authenticateToken, partiesRouter);
 
 export default router;
