@@ -39,8 +39,8 @@ export async function createPoliticalPartyService(
       name: party.name,
       sigla: party.sigla,
       description: party.description,
+      founded: founded ? founded.toISOString() : undefined,
     },
-    founded: founded ? founded.toISOString() : undefined,
   };
 
   await db.collection<ICandidacy>('candidacies').insertOne(Candidacie);
@@ -54,8 +54,8 @@ export async function createPoliticalPartyService(
       name: party.name,
       sigla: party.sigla,
       description: party.description,
+      founded: founded ? founded.toISOString() : undefined,
     },
-    founded: Candidacie.founded,
   };
 }
 

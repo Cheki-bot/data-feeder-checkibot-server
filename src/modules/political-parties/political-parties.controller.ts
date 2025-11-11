@@ -33,8 +33,7 @@ export async function createPoliticalPartyController(
 ): Promise<Response> {
   try {
     const db = (req.app.locals as { db: Db }).db;
-    const { party, candidates, status, government_plan, election_id, founded } =
-      req.body as ICandidacy;
+    const { party, candidates, status, government_plan, election_id } = req.body as ICandidacy;
 
     if (
       party == null ||
@@ -64,11 +63,6 @@ export async function createPoliticalPartyController(
       });
     }
 
-    const foundedDate =
-      founded !== null && founded !== undefined && founded !== ''
-        ? new Date(founded as string | number | Date)
-        : undefined;
-
     const createdParty = await createPoliticalPartyService(
       db,
       party,
@@ -76,7 +70,6 @@ export async function createPoliticalPartyController(
       status,
       government_plan,
       election_id,
-      foundedDate,
     );
 
     return res.status(201).json({
