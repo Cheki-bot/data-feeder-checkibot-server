@@ -7,6 +7,7 @@ import calendarEventsRouter from '../modules/calendar-events/calendar-event.rout
 import calendarsRouter from '../modules/calendars/calendar.routes';
 import partiesRouter from '../modules/political-parties/political-parties.routes';
 import { authenticateToken } from '../middleware/auth';
+import questionsAnswersRouter from '../modules/questions-answers/questions-answers.routes';
 
 const router = Router();
 
@@ -17,5 +18,6 @@ router.use('/categories', categoriesRouter);
 router.use('/calendar-events', calendarEventsRouter);
 router.use('/calendars', calendarsRouter);
 router.use('/political-parties', authenticateToken, partiesRouter);
+router.use('/questions-answers', questionsAnswersRouter);
 
 export default router;
