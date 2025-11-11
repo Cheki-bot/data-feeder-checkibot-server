@@ -5,6 +5,8 @@ import verificationsRouter from '../modules/verifications/verification.routes';
 import categoriesRouter from '../modules/categories/categories.routes';
 import calendarEventsRouter from '../modules/calendar-events/calendar-event.routes';
 import calendarsRouter from '../modules/calendars/calendar.routes';
+import partiesRouter from '../modules/political-parties/political-parties.routes';
+import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 
@@ -14,5 +16,6 @@ router.use('/verifications', verificationsRouter);
 router.use('/categories', categoriesRouter);
 router.use('/calendar-events', calendarEventsRouter);
 router.use('/calendars', calendarsRouter);
+router.use('/political-parties', authenticateToken, partiesRouter);
 
 export default router;

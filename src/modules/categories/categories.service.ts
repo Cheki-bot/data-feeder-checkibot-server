@@ -3,6 +3,7 @@ import { Db } from 'mongodb';
 interface Category {
   name: string;
   description?: string;
+  destination?: string;
 }
 
 export async function getCategoriesService(db: Db): Promise<Category[]> {
@@ -10,5 +11,6 @@ export async function getCategoriesService(db: Db): Promise<Category[]> {
   return categories.map(category => ({
     name: category.name,
     description: category.description,
+    destination: category.destination,
   }));
 }
