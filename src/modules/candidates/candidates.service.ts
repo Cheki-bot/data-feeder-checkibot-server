@@ -49,9 +49,7 @@ export const deleteCandidateService = async (
 ): Promise<void> => {
   const candidaciesCollection = db.collection<ICandidacy>('candidacies');
 
-  console.log('skere: ', candidacyId);
   const candidacy = await candidaciesCollection.findOne({ _id: new ObjectId(candidacyId) });
-  console.log('candidacy ', candidacy);
   if (!candidacy) {
     throw new Error('Candidacy no encontrada');
   }
@@ -71,7 +69,6 @@ export const updateCandidateService = async (
   const candidaciesCollection = db.collection<ICandidacy>('candidacies');
 
   const candidacy = await candidaciesCollection.findOne({ _id: new ObjectId(candidacyId) });
-  console.log('candidacy ', candidacy);
   if (!candidacy) {
     throw new Error('Candidacy no encontrada');
   }
