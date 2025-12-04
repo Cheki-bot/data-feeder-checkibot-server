@@ -655,4 +655,130 @@ router.delete(
   VerificationController.deleteVerification,
 );
 
+/**
+ * @openapi
+ * /verifications/submit-multiple:
+ *   post:
+ *     summary: Create multiple news verifications
+ *     description: Admin only
+ *     tags: [News Verifications]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               verifications:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   required:
+ *                     - title
+ *                     - classified_as
+ *                     - section_url
+ *                     - summary
+ *                     - body
+ *                     - url
+ *                     - publication_date
+ *                     - tags
+ *                   properties:
+ *                     title:
+ *                       type: string
+ *                       minLength: 10
+ *                       maxLength: 500
+ *                     classified_as:
+ *                       type: string
+ *                     section_url:
+ *                       type: string
+ *                       format: uri
+ *                     summary:
+ *                       type: string
+ *                     body:
+ *                       type: string
+ *                     url:
+ *                       type: string
+ *                       format: uri
+ *                     publication_date:
+ *                       type: string
+ *                       format: date-time
+ *                     tags:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/NewsTag'
+ *     responses:
+ *       201:
+ *         description: Multiple news verifications created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Multiple news verifications created successfully
+ *                 ok:
+ *                   type: boolean
+ *                   example: true
+ *                 status:
+ *                   type: number
+ *                   example: 201
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/NewsVerification'
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 400
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 401
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 500
+ */
+router.post(
+  '/submit-multiple',
+  requireAdmin,
+  VerificationController.createMultipleNewsVerificationsController,
+);
+
 export default router;

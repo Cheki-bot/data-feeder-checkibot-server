@@ -131,3 +131,45 @@ export async function deleteNewsVerification(db: Db, verificationId: string): Pr
 
   return result.deletedCount > 0;
 }
+
+/**
+ * Create multiple news verifications
+ */
+export async function createMultipleNewsVerifications(
+  db: Db,
+  verificationsData: CreateNewsVerificationData[],
+  userEmail: string,
+): Promise<NewsVerificationResponse[]> {
+  const verificationDocs = verificationsData.map(data =>
+    createNewsVerificationDocument(data, userEmail),
+  );
+
+  const result = await db
+    .collection<NewsVerificationDocument>('news_verifications')
+    .insertMany(verificationDocs);
+
+  const insertedIds = Object.values(result.insertedIds);
+
+  const createdVerifications = await db
+    .collection<NewsVerificationDocument>('news_verifications')
+    .find({ _id: { $in: insertedIds } })
+    .toArray();
+
+  return createdVerifications.map(createNewsVerificationResponse);
+}
+
+/**
+ * Delete multiple news verifications
+ */
+export async function deleteMultipleNewsVerifications(
+  db: Db,
+  verificationIds: string[],
+): Promise<number> {
+  const objectIds = verificationIds.filter(id => ObjectId.isValid(id)).map(id => new ObjectId(id));
+
+  const result = await db
+    .collection<NewsVerificationDocument>('news_verifications')
+    .deleteMany({ _id: { $in: objectIds } });
+
+  return result.deletedCount ?? 0;
+}
