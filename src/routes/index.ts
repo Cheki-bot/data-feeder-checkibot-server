@@ -8,6 +8,7 @@ import calendarsRouter from '../modules/calendars/calendar.routes';
 import partiesRouter from '../modules/political-parties/political-parties.routes';
 import { authenticateToken } from '../middleware/auth';
 import questionsAnswersRouter from '../modules/questions-answers/questions-answers.routes';
+import candidatesRouter from '../modules/candidates/candidates.routes';
 
 const router = Router();
 
@@ -16,8 +17,9 @@ router.use('/auth', authRouter);
 router.use('/verifications', verificationsRouter);
 router.use('/categories', categoriesRouter);
 router.use('/calendar-events', calendarEventsRouter);
-router.use('/calendars', calendarsRouter);
+router.use('/calendars', authenticateToken, calendarsRouter);
 router.use('/political-parties', authenticateToken, partiesRouter);
-router.use('/questions-answers', questionsAnswersRouter);
+router.use('/questions-answers', authenticateToken, questionsAnswersRouter);
+router.use('/candidates', authenticateToken, candidatesRouter);
 
 export default router;
