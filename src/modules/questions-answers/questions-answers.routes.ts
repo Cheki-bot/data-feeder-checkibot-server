@@ -104,11 +104,24 @@ questionsAnswersRouter.post('/', QuestionsAnswersController.createQuestionsAnswe
  * @openapi
  * /questions-answers:
  *   delete:
- *     summary: Eliminar todas las preguntas y respuestas
+ *     summary: Eliminar preguntas y respuestas por ID
  *     tags:
  *       - Preguntas y Respuestas
  *     security:
  *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               questions_answersId:
+ *                 type: array
+ *                 description: Lista de IDs de preguntas y respuestas a eliminar
+ *                 items:
+ *                   type: string
+ *                 example: ["60d5f9f5f1d2c4b5d6e8f9a0", "70e6a0f7b2e3d5c7f8a9b1c2"]
  *     responses:
  *       200:
  *         description: Preguntas y respuestas eliminadas exitosamente
@@ -129,6 +142,10 @@ questionsAnswersRouter.post('/', QuestionsAnswersController.createQuestionsAnswe
  *                 data:
  *                   type: null
  *                   example: null
+ *       400:
+ *         description: Error de validación en los IDs enviados
+ *       500:
+ *         description: Error interno del servidor
  */
 questionsAnswersRouter.delete('/', QuestionsAnswersController.deleteQuestionsAnswersController);
 
