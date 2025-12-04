@@ -61,3 +61,29 @@ export async function deleteQuestionsAnswersService(
 
   await collection.deleteMany(filter);
 }
+
+export async function createMultipleQuestionsAnswersService(
+  db: Db,
+  questionsAnswersData: { question: string; answer: string }[],
+): Promise<InsertOneResult<IQuestionsAndAnswers>[]> {
+  const questionsAnswersDocs = questionsAnswersData.map(data => ({
+    question: data.question,
+    answer: data.answer,
+  }));
+
+  const result = await db
+    .collection<IQuestionsAndAnswers>('questions_and_answers')
+    .insertMany(questionsAnswersDocs);
+
+  const insertedIds = Object.values(result.insertedIds);
+
+  const createdQuestionsAnswers = await db
+    .collection<IQuestionsAndAnswers>('questions_and_answers')
+    .find({ _id: { $in: insertedIds } })
+    .toArray();
+
+  return createdQuestionsAnswers.map(qa => ({
+    acknowledged: true,
+    insertedId: qa._id,
+  }));
+}

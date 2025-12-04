@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { Db } from 'mongodb';
 import {
   createQuestionsAnswersService,
+  createMultipleQuestionsAnswersService,
   deleteQuestionsAnswersService,
   getQuestionsAnswersService,
   updateQuestionsAnswersService,
@@ -155,6 +156,47 @@ export const deleteQuestionsAnswersController = async (
     });
   } catch (error) {
     console.error('Error deleting Questions and Answers:', error);
+    return res.status(500).json({
+      ok: false,
+      status: 500,
+      message: 'Internal server error',
+      data: null,
+    });
+  }
+};
+
+export const createMultipleQuestionsAnswersController = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
+  try {
+    const db = (req.app.locals as { db: Db }).db;
+
+    const body = req.body as {
+      questionsAnswersData?: { question: string; answer: string }[];
+    };
+
+    const questionsAnswersData = body.questionsAnswersData;
+
+    if (!Array.isArray(questionsAnswersData) || questionsAnswersData.length === 0) {
+      return res.status(400).json({
+        ok: false,
+        status: 400,
+        message: 'questionsAnswersData must be a non-empty array',
+        data: null,
+      });
+    }
+
+    const creationResults = await createMultipleQuestionsAnswersService(db, questionsAnswersData);
+
+    return res.status(201).json({
+      ok: true,
+      status: 201,
+      message: 'Multiple Questions and Answers created successfully',
+      data: creationResults,
+    });
+  } catch (error) {
+    console.error('Error creating multiple Questions and Answers:', error);
     return res.status(500).json({
       ok: false,
       status: 500,

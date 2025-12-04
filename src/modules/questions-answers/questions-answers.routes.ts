@@ -204,4 +204,79 @@ questionsAnswersRouter.put(
   QuestionsAnswersController.updateQuestionsAnswersController,
 );
 
+/**
+ * @openapi
+ * /questions-answers/submit-multiple:
+ *   post:
+ *     summary: Crear múltiples preguntas y respuestas
+ *     tags:
+ *       - Preguntas y Respuestas
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               questionsAnswers:
+ *                 type: array
+ *                 description: Lista de preguntas y respuestas a crear
+ *                 items:
+ *                   type: object
+ *                   required:
+ *                     - question
+ *                     - answer
+ *                   properties:
+ *                     question:
+ *                       type: string
+ *                       example: ¿Cuál es la capital de Francia?
+ *                     answer:
+ *                       type: string
+ *                       example: La capital de Francia es París.
+ *             example:
+ *               questionsAnswersData:
+ *                 - question: "¿Cuál es la capital de Francia?"
+ *                   answer: "La capital de Francia es París."
+ *                 - question: "¿Cuál es la capital de España?"
+ *                   answer: "La capital de España es Madrid."
+ *     responses:
+ *       201:
+ *         description: Preguntas y respuestas creadas exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Questions and Answers created successfully
+ *                 ok:
+ *                   type: boolean
+ *                   example: true
+ *                 status:
+ *                   type: integer
+ *                   example: 201
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       question:
+ *                         type: string
+ *                       answer:
+ *                         type: string
+ *       400:
+ *         description: Error de validación
+ *       500:
+ *         description: Error interno del servidor
+ */
+questionsAnswersRouter.post(
+  '/submit-multiple',
+  QuestionsAnswersController.createMultipleQuestionsAnswersController,
+);
+
 export default questionsAnswersRouter;

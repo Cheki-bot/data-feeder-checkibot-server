@@ -310,3 +310,66 @@ export async function deleteVerification(req: AuthRequest, res: Response): Promi
     });
   }
 }
+
+export async function createMultipleNewsVerificationsController(
+  req: AuthRequest,
+  res: Response,
+): Promise<void> {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    res.status(400).json({
+      message: 'Validation failed',
+      ok: false,
+      status: 400,
+      errors: errors.array(),
+    });
+    return;
+  }
+
+  try {
+    const db = getDb(req);
+    const verificationsData = (req.body as { verifications?: CreateNewsVerificationData[] })
+      .verifications;
+    const userEmail = req.currentUser?.email;
+
+    if (!Array.isArray(verificationsData)) {
+      res.status(400).json({
+        message: 'verifications must be an array',
+        ok: false,
+        status: 400,
+      });
+      return;
+    }
+    if (userEmail === undefined) {
+      res.status(401).json({
+        message: 'User not authenticated',
+        ok: false,
+        status: 401,
+      });
+      return;
+    }
+
+    const verifications = await VerificationService.createMultipleNewsVerifications(
+      db,
+      verificationsData,
+      userEmail,
+    );
+
+    res.status(201).json({
+      message: 'News verifications created successfully',
+      ok: true,
+      status: 201,
+      data: verifications,
+    });
+  } catch (error) {
+    console.error('Create multiple news verifications error:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({
+      message: 'Server error',
+      ok: false,
+      status: 500,
+      error: message,
+    });
+  }
+}
