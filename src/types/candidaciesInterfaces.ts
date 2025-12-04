@@ -18,6 +18,7 @@ export enum ElectionRound {
 }
 
 export interface IPolitician {
+  id?: string;
   full_name: string;
   position: string;
 }
