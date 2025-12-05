@@ -29,11 +29,9 @@ export const getCandidatesByCandidacyService = async (
   db: Db,
   candidacyId: string,
 ): Promise<IPolitician[]> => {
-  const candidaciesCollection = db.collection<ICandidacy>('candidacies');
-
-  const candidacy = await candidaciesCollection.findOne({
-    _id: new ObjectId(candidacyId),
-  });
+  const candidacy = await db
+    .collection<ICandidacy>('candidacies')
+    .findOne({ _id: new ObjectId(candidacyId) }, { projection: { candidates: 1 } });
 
   if (!candidacy) {
     throw new Error('Candidacy no encontrada');

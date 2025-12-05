@@ -2,23 +2,27 @@ import { CandidacyStatus, ICandidacy, IPoliticalParty, IPolitician } from '@/typ
 import { Db, ObjectId } from 'mongodb';
 
 export async function getPoliticalPartiesService(db: Db): Promise<IPoliticalParty[]> {
-  const candidacies = await db
+  const parties = await db
     .collection<ICandidacy>('candidacies')
-    .find({ party: { $exists: true } })
+    .aggregate<{ _id: string; sigla?: string; description?: string; id: ObjectId }>([
+      { $match: { party: { $exists: true } } },
+      {
+        $group: {
+          _id: '$party.name',
+          sigla: { $first: '$party.sigla' },
+          description: { $first: '$party.description' },
+          id: { $first: '$_id' },
+        },
+      },
+    ])
     .toArray();
 
-  const partyMap = new Map<string, IPoliticalParty>();
-
-  candidacies.forEach(doc => {
-    const id = doc._id.toString();
-    const name = doc.party.name;
-    const sigla = doc.party.sigla;
-    const description = doc.party.description;
-
-    partyMap.set(name, { id, name, sigla, description });
-  });
-
-  return Array.from(partyMap.values());
+  return parties.map(p => ({
+    id: p.id.toString(),
+    name: p._id,
+    sigla: p.sigla ?? '',
+    description: p.description ?? '',
+  }));
 }
 
 export async function createPoliticalPartyService(
