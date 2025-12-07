@@ -13,7 +13,6 @@ export async function getQuestionsAnswersService(db: Db): Promise<IQuestionsAndA
     questionAnswersMap.set(qa._id, qa);
   });
 
-  console.log(questionAnswersMap);
   return Array.from(questionAnswersMap.values());
 }
 
@@ -29,7 +28,6 @@ export async function createQuestionsAnswersService(
   const result = await db
     .collection<IQuestionsAndAnswers>('questions_and_answers')
     .insertOne(newQuestionsAnswers);
-  console.log(result);
   return result;
 }
 
