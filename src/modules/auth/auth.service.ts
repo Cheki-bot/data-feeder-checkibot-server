@@ -1,6 +1,6 @@
 import { Db } from 'mongodb';
 import { hashPassword, verifyPassword, generateToken } from '../../utils/auth';
-import { createUserDocument, createUserResponse, UserResponse } from './user.model';
+import { createUserDocument, createUserResponse, UserResponse } from '../users/user.model';
 import { DEFAULT_ROLE, Role } from '../../constants/roles';
 import { UserDocument } from '../../types/authInterfaces';
 
