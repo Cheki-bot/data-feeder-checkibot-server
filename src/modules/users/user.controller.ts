@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { ObjectId } from 'mongodb';
-import { AuthRequest, RegisterBody, UserDocument, getDb } from '../../types/authInterfaces';
+import { AuthRequest, RegisterBody, UpdateUserBody, getDb } from '../../types/authInterfaces';
+import * as AuthService from '../auth/auth.service';
 import * as UserService from './user.service';
 
 export async function listUsers(req: AuthRequest, res: Response): Promise<void> {
@@ -81,7 +82,7 @@ export async function getUserById(req: AuthRequest, res: Response): Promise<void
 export async function updateUser(req: AuthRequest, res: Response): Promise<void> {
   try {
     const userId = req.params.id;
-    const updateData = req.body as UserDocument;
+    const { username, email, password, is_active } = req.body as UpdateUserBody;
 
     // Validate ObjectId format
     if (!ObjectId.isValid(userId)) {
@@ -94,7 +95,12 @@ export async function updateUser(req: AuthRequest, res: Response): Promise<void>
     }
 
     const db = getDb(req);
-    const updatedUser = await UserService.updateUser(db, userId, updateData);
+    const updatedUser = await UserService.updateUser(db, userId, {
+      username,
+      email,
+      password,
+      is_active,
+    });
 
     if (!updatedUser) {
       res.status(404).json({
@@ -270,10 +276,10 @@ export async function deleteUser(req: AuthRequest, res: Response): Promise<void>
  */
 export async function createUser(req: AuthRequest, res: Response): Promise<void> {
   try {
-    const { username, email, password, role } = req.body as RegisterBody;
+    const { username, email, password } = req.body as RegisterBody;
 
     const db = getDb(req);
-    const newUser = await UserService.registerUser(db, username, email, password, role);
+    const newUser = await AuthService.registerUser(db, username, email, password, 'user');
 
     res.status(201).json({
       message: 'User created successfully',
