@@ -45,11 +45,20 @@ export const createQuestionsAnswersController = async (
 
     const { question, answer } = req.body as IQuestionsAndAnswers;
 
-    if (question === null || answer === null) {
+    if (question.trim().length === 0 || answer.trim().length === 0) {
       return res.status(400).json({
         ok: false,
         status: 400,
-        message: 'Invalid input: question and answer are required and must be strings',
+        message: 'Invalid input: question and answer are required fields',
+        data: null,
+      });
+    }
+
+    if (typeof question !== 'string' || typeof answer !== 'string') {
+      return res.status(400).json({
+        ok: false,
+        status: 400,
+        message: 'Invalid input: question and answer must be strings',
         data: null,
       });
     }
@@ -82,11 +91,20 @@ export const updateQuestionsAnswersController = async (
     const { questionId } = req.params;
     const { question, answer } = req.body as IQuestionsAndAnswers;
 
-    if (question === null || answer === null) {
+    if (question.trim().length === 0 || answer.trim().length === 0) {
       return res.status(400).json({
         ok: false,
         status: 400,
-        message: 'Invalid input: question and answer are required and must be strings',
+        message: 'Invalid input: question and answer are required fields',
+        data: null,
+      });
+    }
+
+    if (typeof question !== 'string' || typeof answer !== 'string') {
+      return res.status(400).json({
+        ok: false,
+        status: 400,
+        message: 'Invalid input: question and answer must be strings',
         data: null,
       });
     }
