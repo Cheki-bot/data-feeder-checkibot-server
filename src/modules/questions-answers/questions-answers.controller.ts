@@ -191,10 +191,10 @@ export const createMultipleQuestionsAnswersController = async (
     const db = (req.app.locals as { db: Db }).db;
 
     const body = req.body as {
-      questionsAnswersData?: { question: string; answer: string }[];
+      questionsAnswers?: { question: string; answer: string }[];
     };
 
-    const questionsAnswersData = body.questionsAnswersData;
+    const questionsAnswersData = body.questionsAnswers;
 
     if (!Array.isArray(questionsAnswersData) || questionsAnswersData.length === 0) {
       return res.status(400).json({
