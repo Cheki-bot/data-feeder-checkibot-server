@@ -53,3 +53,14 @@ export const loginValidation: ValidationChain[] = [
 export const emailParamValidation: ValidationChain[] = [
   param('email').isEmail().withMessage('Must be a valid email address'),
 ];
+
+/**
+ * Validation rules for changing user role
+ */
+export const changeUserRoleValidation: ValidationChain[] = [
+  param('id').isMongoId().withMessage('User ID must be a valid MongoDB ObjectId'),
+
+  body('role')
+    .isIn(ROLE_VALUES)
+    .withMessage(`Role must be one of: ${ROLE_VALUES.join(', ')}`),
+];

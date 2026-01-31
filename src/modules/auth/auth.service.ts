@@ -1,8 +1,8 @@
-import { Db } from 'mongodb';
-import { hashPassword, verifyPassword, generateToken } from '../../utils/auth';
-import { createUserDocument, createUserResponse, UserResponse } from './user.model';
+import { Db, ObjectId } from 'mongodb';
 import { DEFAULT_ROLE, Role } from '../../constants/roles';
 import { UserDocument } from '../../types/authInterfaces';
+import { generateToken, hashPassword, verifyPassword } from '../../utils/auth';
+import { createUserDocument, createUserResponse, UserResponse } from './user.model';
 
 interface LoginResponse {
   access_token: string;
@@ -55,7 +55,6 @@ export async function loginUser(db: Db, email: string, password: string): Promis
   const normalizedEmail = email.toLowerCase().trim();
 
   const user = await db.collection<UserDocument>('users').findOne({ email: normalizedEmail });
-
   if (user === null) {
     throw new Error('INVALID_CREDENTIALS');
   }
@@ -110,4 +109,58 @@ export async function getUserByEmail(
   );
 
   return user;
+}
+
+/**
+ * Change user role
+ */
+export async function changeUserRole(
+  db: Db,
+  userId: string,
+  newRole: Role,
+  currentAdminEmail: string,
+): Promise<UserResponse> {
+  const normalizedAdminEmail = currentAdminEmail.toLowerCase().trim();
+
+  // Validate ObjectId format
+  if (!ObjectId.isValid(userId)) {
+    throw new Error('INVALID_USER_ID');
+  }
+
+  // Get the user to change
+  const user = await db.collection<UserDocument>('users').findOne(
+    { _id: new ObjectId(userId) },
+    {
+      projection: {
+        password_hash: 0,
+      },
+    },
+  );
+
+  if (user === null) {
+    throw new Error('USER_NOT_FOUND');
+  }
+
+  // Prevent changing own role
+  if (user.email.toLowerCase().trim() === normalizedAdminEmail) {
+    throw new Error('CANNOT_CHANGE_OWN_ROLE');
+  }
+
+  // Update user role
+  const updatedUser = await db.collection<UserDocument>('users').updateOne(
+    { _id: new ObjectId(userId) },
+    {
+      $set: {
+        role: newRole,
+        updated_at: new Date(),
+      },
+    },
+  );
+
+  if (updatedUser.matchedCount === 0) {
+    throw new Error('USER_UPDATE_FAILED');
+  }
+
+  // Return updated user without password
+  return createUserResponse(user);
 }

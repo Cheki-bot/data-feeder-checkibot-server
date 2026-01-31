@@ -1,14 +1,15 @@
+import { Role } from '@/constants/roles';
 import { Response } from 'express';
 import { validationResult } from 'express-validator';
 import { ObjectId } from 'mongodb';
-import * as AuthService from './auth.service';
 import {
   AuthRequest,
-  RegisterBody,
   LoginBody,
+  RegisterBody,
   UserDocument,
   getDb,
 } from '../../types/authInterfaces';
+import * as AuthService from './auth.service';
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 60;
@@ -411,6 +412,108 @@ export async function deleteUser(req: AuthRequest, res: Response): Promise<void>
     });
   } catch (error) {
     console.error('Delete user error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({
+      message: 'Server error',
+      ok: false,
+      status: 500,
+      error: errorMessage,
+    });
+  }
+}
+
+/**
+ * PUT /api/auth/users/:id/role
+ * Change user role (Admin only)
+ */
+export async function changeUserRole(req: AuthRequest, res: Response): Promise<void> {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.status(400).json({
+      message: 'Validation errors',
+      ok: false,
+      status: 400,
+      errors: errors.array(),
+    });
+    return;
+  }
+
+  const { id } = req.params;
+  const { role } = req.body as { role: Role };
+  const currentAdminEmail = req.currentUser?.email;
+
+  try {
+    // Validate ObjectId format
+    if (!ObjectId.isValid(id)) {
+      res.status(400).json({
+        message: 'Invalid user ID format',
+        ok: false,
+        status: 400,
+      });
+      return;
+    }
+
+    // Check if current user is authenticated
+    if (currentAdminEmail === null || currentAdminEmail === undefined) {
+      res.status(401).json({
+        message: 'User not authenticated',
+        ok: false,
+        status: 401,
+      });
+      return;
+    }
+
+    const db = getDb(req);
+    const user = await AuthService.changeUserRole(db, id, role, currentAdminEmail);
+
+    res.json({
+      message: 'User role changed successfully',
+      ok: true,
+      status: 200,
+      data: user,
+    });
+  } catch (error) {
+    console.error('Change user role error:', error);
+
+    if (error instanceof Error && error.message === 'USER_NOT_FOUND') {
+      res.status(404).json({
+        message: 'User not found',
+        ok: false,
+        status: 404,
+      });
+      return;
+    }
+
+    if (error instanceof Error && error.message === 'CANNOT_CHANGE_OWN_ROLE') {
+      res.status(400).json({
+        message: 'Cannot change your own role',
+        ok: false,
+        status: 400,
+      });
+      return;
+    }
+
+    if (
+      error instanceof Error &&
+      error.message === 'CANNOT_CHANGE_TO_ADMIN_WITHOUT_ADMIN_PRIVILEGES'
+    ) {
+      res.status(403).json({
+        message: 'You do not have permission to change user to admin role',
+        ok: false,
+        status: 403,
+      });
+      return;
+    }
+
+    if (error instanceof Error && error.message === 'USER_UPDATE_FAILED') {
+      res.status(500).json({
+        message: 'Failed to update user role',
+        ok: false,
+        status: 500,
+      });
+      return;
+    }
+
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     res.status(500).json({
       message: 'Server error',

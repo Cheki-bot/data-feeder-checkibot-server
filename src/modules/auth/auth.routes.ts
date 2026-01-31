@@ -1,6 +1,10 @@
 import { Router } from 'express';
-import { registerValidation, loginValidation } from '../../validators/auth';
 import { authenticateToken, getCurrentUser, requireAdmin } from '../../middleware/auth';
+import {
+  changeUserRoleValidation,
+  loginValidation,
+  registerValidation,
+} from '../../validators/auth';
 import * as AuthController from './auth.controller';
 
 const router = Router();
@@ -23,7 +27,7 @@ const router = Router();
  *           type: string
  *         role:
  *           type: string
- *           enum: [user, admin]
+ *           enum: [employe, admin]
  *         is_active:
  *           type: boolean
  *         failed_attempts:
@@ -745,6 +749,141 @@ router.delete(
   getCurrentUser,
   requireAdmin,
   AuthController.deleteUser,
+);
+
+/**
+ * @openapi
+ * /auth/users/{id}/role:
+ *   put:
+ *     summary: Change user role
+ *     description: Change the role of a user (Admin only)
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID (MongoDB ObjectId)
+ *         example: 507f1f77bcf86cd799439011
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - role
+ *             properties:
+ *               role:
+ *                 type: string
+ *                 enum: [admin, employe]
+ *                 description: Optional - defaults to 'employe'
+ *     responses:
+ *       200:
+ *         description: User role changed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: User role changed successfully
+ *                 ok:
+ *                   type: boolean
+ *                   example: true
+ *                 status:
+ *                   type: number
+ *                   example: 200
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Validation error or cannot change own role
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 400
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 401
+ *       403:
+ *         description: Forbidden - admin only or insufficient privileges
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 403
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 404
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 500
+ */
+// Admin-only routes - Change user role
+router.put(
+  '/users/:id/role',
+  authenticateToken,
+  getCurrentUser,
+  requireAdmin,
+  changeUserRoleValidation,
+  AuthController.changeUserRole,
 );
 
 export default router;
