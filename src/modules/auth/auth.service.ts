@@ -157,7 +157,12 @@ export async function changeUserRole(
     {
       $set: {
         role: newRole,
-        promoted_by: currentAdmin.promoted_by ? currentAdmin._id : user.promoted_by,
+        promoted_by:
+          newRole === ROLES.ADMIN
+            ? currentAdmin.promoted_by
+              ? currentAdmin._id
+              : user.promoted_by
+            : user.promoted_by,
         updated_at: new Date(),
       },
     },

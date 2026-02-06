@@ -464,13 +464,13 @@ export async function changeUserRole(req: AuthRequest, res: Response): Promise<v
     }
 
     const db = getDb(req);
-    const user = await AuthService.changeUserRole(db, id, role, currentUser);
+    const updatedUser = await AuthService.changeUserRole(db, id, role, currentUser);
 
     res.json({
       message: 'User role changed successfully',
       ok: true,
       status: 200,
-      data: user,
+      data: updatedUser,
     });
   } catch (error) {
     console.error('Change user role error:', error);

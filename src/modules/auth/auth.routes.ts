@@ -17,31 +17,34 @@ const router = Router();
  *       type: object
  *       required:
  *         - email
- *         - name
+ *         - username
  *         - role
+ *         - is_active
+ *         - created_at
+ *         - updated_at
+ *         - promoted_by
  *       properties:
  *         email:
  *           type: string
  *           format: email
- *         name:
+ *         username:
  *           type: string
  *         role:
  *           type: string
  *           enum: [employee, admin]
  *         is_active:
  *           type: boolean
- *         failed_attempts:
- *           type: number
- *         lockout_until:
- *           type: string
- *           format: date-time
- *           nullable: true
  *         created_at:
  *           type: string
  *           format: date-time
  *         updated_at:
  *           type: string
  *           format: date-time
+ *         promoted_by:
+ *           type: string
+ *           format: ObjectId
+ *           nullable: true
+ *           description: ObjectId of the admin who promoted this user to ADMIN role (null for ORIGINAL admins or EMPLOYE users)
  */
 
 /**
@@ -49,7 +52,7 @@ const router = Router();
  * /auth/register:
  *   post:
  *     summary: Register a new user
- *     description: Create a new user account with username, email and password
+ *     description: Create a new user account with username, email and password. Default role is 'employee'.
  *     tags: [Authentication]
  *     requestBody:
  *       required: true
@@ -79,15 +82,11 @@ const router = Router();
  *                 minLength: 8
  *                 maxLength: 72
  *                 example: SecurePass123
+ *                 description: Password must be at least 8 characters
  *               confirmPassword:
  *                 type: string
- *                 description: Must match password
+ *                 description: Must match password exactly
  *                 example: SecurePass123
- *               role:
- *                 type: string
- *                 enum: [user, admin]
- *                 description: Optional - defaults to 'user'
- *                 example: user
  *     responses:
  *       201:
  *         description: User registered successfully
@@ -122,6 +121,20 @@ const router = Router();
  *                 status:
  *                   type: number
  *                   example: 400
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       type:
+ *                         type: string
+ *                       msg:
+ *                         type: string
+ *                         example: Username must be between 3 and 30 characters
+ *                         type: string
+ *                   example:
+ *                     - type: field
+ *                       msg: Username is required
  *       500:
  *         description: Internal server error
  *         content:
@@ -137,10 +150,12 @@ const router = Router();
  *                 status:
  *                   type: number
  *                   example: 500
+ *                 error:
+ *                   type: string
+ *                   example: Server error
  */
 // Public routes - Register
 router.post('/register', registerValidation, AuthController.register);
-
 /**
  * @openapi
  * /auth/login:
@@ -780,7 +795,8 @@ router.delete(
  *               role:
  *                 type: string
  *                 enum: [admin, employee]
- *                 description: Optional - defaults to 'employee'
+ *                 description: User role (admin or employee)
+ *                 example: employee
  *     responses:
  *       200:
  *         description: User role changed successfully
