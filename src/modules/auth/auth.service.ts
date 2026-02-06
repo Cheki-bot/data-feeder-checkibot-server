@@ -1,5 +1,5 @@
-import { Db, ObjectId } from 'mongodb';
-import { DEFAULT_ROLE, Role } from '../../constants/roles';
+import { Db, ObjectId, WithId } from 'mongodb';
+import { DEFAULT_ROLE, Role, ROLES } from '../../constants/roles';
 import { UserDocument } from '../../types/authInterfaces';
 import { generateToken, hashPassword, verifyPassword } from '../../utils/auth';
 import { createUserDocument, createUserResponse, UserResponse } from './user.model';
@@ -118,10 +118,8 @@ export async function changeUserRole(
   db: Db,
   userId: string,
   newRole: Role,
-  currentAdminEmail: string,
+  currentAdmin: Omit<WithId<UserDocument>, 'password_hash'>,
 ): Promise<UserResponse> {
-  const normalizedAdminEmail = currentAdminEmail.toLowerCase().trim();
-
   // Validate ObjectId format
   if (!ObjectId.isValid(userId)) {
     throw new Error('INVALID_USER_ID');
@@ -142,8 +140,15 @@ export async function changeUserRole(
   }
 
   // Prevent changing own role
-  if (user.email.toLowerCase().trim() === normalizedAdminEmail) {
+  if (user._id.toString() === currentAdmin._id.toString()) {
     throw new Error('CANNOT_CHANGE_OWN_ROLE');
+  }
+
+  if (currentAdmin.promoted_by && user.role === ROLES.ADMIN) {
+    const isPromoterAdmin = user.promoted_by?.toString() === currentAdmin._id.toString();
+    if (!isPromoterAdmin) {
+      throw new Error('ADMIN_CAN_ONLY_PROMOTE_USERS_OWNED_OR_ORIGINAL');
+    }
   }
 
   // Update user role
@@ -152,6 +157,7 @@ export async function changeUserRole(
     {
       $set: {
         role: newRole,
+        promoted_by: currentAdmin.promoted_by ? currentAdmin._id : user.promoted_by,
         updated_at: new Date(),
       },
     },
@@ -161,6 +167,18 @@ export async function changeUserRole(
     throw new Error('USER_UPDATE_FAILED');
   }
 
-  // Return updated user without password
-  return createUserResponse(user);
+  const updatedUserDoc = await db.collection<UserDocument>('users').findOne(
+    { _id: new ObjectId(userId) },
+    {
+      projection: {
+        password_hash: 0,
+      },
+    },
+  );
+
+  if (updatedUserDoc === null) {
+    throw new Error('USER_UPDATE_FAILED');
+  }
+
+  return createUserResponse(updatedUserDoc);
 }

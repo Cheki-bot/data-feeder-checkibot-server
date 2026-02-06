@@ -27,7 +27,7 @@ const router = Router();
  *           type: string
  *         role:
  *           type: string
- *           enum: [employe, admin]
+ *           enum: [employee, admin]
  *         is_active:
  *           type: boolean
  *         failed_attempts:
@@ -779,8 +779,8 @@ router.delete(
  *             properties:
  *               role:
  *                 type: string
- *                 enum: [admin, employe]
- *                 description: Optional - defaults to 'employe'
+ *                 enum: [admin, employee]
+ *                 description: Optional - defaults to 'employee'
  *     responses:
  *       200:
  *         description: User role changed successfully

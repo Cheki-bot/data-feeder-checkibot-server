@@ -4,10 +4,10 @@ import { validationResult } from 'express-validator';
 import { ObjectId } from 'mongodb';
 import {
   AuthRequest,
+  getDb,
   LoginBody,
   RegisterBody,
   UserDocument,
-  getDb,
 } from '../../types/authInterfaces';
 import * as AuthService from './auth.service';
 
@@ -30,10 +30,10 @@ export async function register(req: AuthRequest, res: Response): Promise<void> {
     return;
   }
 
-  const { username, email, password, role } = req.body as RegisterBody;
+  const { username, email, password } = req.body as RegisterBody;
   try {
     const db = getDb(req);
-    const user = await AuthService.registerUser(db, username, email, password, role);
+    const user = await AuthService.registerUser(db, username, email, password);
 
     res.status(201).json({
       message: 'User registered successfully',
@@ -440,7 +440,7 @@ export async function changeUserRole(req: AuthRequest, res: Response): Promise<v
 
   const { id } = req.params;
   const { role } = req.body as { role: Role };
-  const currentAdminEmail = req.currentUser?.email;
+  const currentUser = req.currentUser;
 
   try {
     // Validate ObjectId format
@@ -454,7 +454,7 @@ export async function changeUserRole(req: AuthRequest, res: Response): Promise<v
     }
 
     // Check if current user is authenticated
-    if (currentAdminEmail === null || currentAdminEmail === undefined) {
+    if (!currentUser) {
       res.status(401).json({
         message: 'User not authenticated',
         ok: false,
@@ -464,7 +464,7 @@ export async function changeUserRole(req: AuthRequest, res: Response): Promise<v
     }
 
     const db = getDb(req);
-    const user = await AuthService.changeUserRole(db, id, role, currentAdminEmail);
+    const user = await AuthService.changeUserRole(db, id, role, currentUser);
 
     res.json({
       message: 'User role changed successfully',
@@ -495,10 +495,11 @@ export async function changeUserRole(req: AuthRequest, res: Response): Promise<v
 
     if (
       error instanceof Error &&
-      error.message === 'CANNOT_CHANGE_TO_ADMIN_WITHOUT_ADMIN_PRIVILEGES'
+      error.message === 'ADMIN_CAN_ONLY_PROMOTE_USERS_OWNED_OR_ORIGINAL'
     ) {
       res.status(403).json({
-        message: 'You do not have permission to change user to admin role',
+        message:
+          'Admin can only change the role of employees or admins they promoted, unless they are the original administrator.',
         ok: false,
         status: 403,
       });

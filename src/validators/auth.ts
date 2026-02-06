@@ -31,11 +31,6 @@ export const registerValidation: ValidationChain[] = [
       }
       return true;
     }),
-
-  body('role')
-    .optional()
-    .isIn(ROLE_VALUES)
-    .withMessage(`Role must be one of: ${ROLE_VALUES.join(', ')}`),
 ];
 
 /**
