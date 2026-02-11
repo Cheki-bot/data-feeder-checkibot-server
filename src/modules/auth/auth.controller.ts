@@ -1,14 +1,14 @@
 import { Response } from 'express';
 import { validationResult } from 'express-validator';
-import { ObjectId } from 'mongodb';
-import * as AuthService from './auth.service';
 import {
   AuthRequest,
-  RegisterBody,
   LoginBody,
+  RegisterBody,
   UserDocument,
   getDb,
 } from '../../types/authInterfaces';
+import { generateToken } from '../../utils/auth';
+import * as AuthService from './auth.service';
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 60;
@@ -34,11 +34,32 @@ export async function register(req: AuthRequest, res: Response): Promise<void> {
     const db = getDb(req);
     const user = await AuthService.registerUser(db, username, email, password, role);
 
+    // Generate token for the new user
+    const token = generateToken(
+      {
+        sub: user.email,
+        username: user.username,
+        role: user.role,
+      },
+      '24h',
+    );
+
     res.status(201).json({
       message: 'User registered successfully',
       ok: true,
       status: 201,
-      data: user,
+      data: {
+        user: {
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          is_active: user.is_active,
+          created_at: user.created_at,
+          updated_at: user.updated_at,
+        },
+        access_token: token,
+        token_type: 'bearer',
+      },
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -230,193 +251,4 @@ export function getProfile(req: AuthRequest, res: Response): void {
     status: 200,
     data: req.currentUser,
   });
-}
-
-/**
- * GET /api/auth/users
- * List all users (Admin only)
- */
-export async function listUsers(req: AuthRequest, res: Response): Promise<void> {
-  try {
-    const db = getDb(req);
-    const users = await db
-      .collection<UserDocument>('users')
-      .find({}, { projection: { password_hash: 0, failed_attempts: 0, lockout_until: 0 } })
-      .toArray();
-
-    res.json({
-      message: 'Users retrieved successfully',
-      ok: true,
-      status: 200,
-      data: users,
-    });
-  } catch (error) {
-    console.error('List users error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({
-      message: 'Server error',
-      ok: false,
-      status: 500,
-      error: errorMessage,
-    });
-  }
-}
-
-/**
- * PUT /api/auth/users/:id/deactivate
- * Deactivate a user (Admin only)
- */
-export async function deactivateUser(req: AuthRequest, res: Response): Promise<void> {
-  try {
-    const userId = req.params.id;
-
-    // Validate ObjectId format
-    if (!ObjectId.isValid(userId)) {
-      res.status(400).json({
-        message: 'Invalid user ID format',
-        ok: false,
-        status: 400,
-      });
-      return;
-    }
-
-    const db = getDb(req);
-    const result = await db.collection<UserDocument>('users').updateOne(
-      { _id: new ObjectId(userId) },
-      {
-        $set: {
-          is_active: false,
-          updated_at: new Date(),
-        },
-      },
-    );
-
-    if (result.matchedCount === 0) {
-      res.status(404).json({
-        message: 'User not found',
-        ok: false,
-        status: 404,
-      });
-      return;
-    }
-
-    res.json({
-      message: 'User deactivated successfully',
-      ok: true,
-      status: 200,
-    });
-  } catch (error) {
-    console.error('Deactivate user error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({
-      message: 'Server error',
-      ok: false,
-      status: 500,
-      error: errorMessage,
-    });
-  }
-}
-
-/**
- * PUT /api/auth/users/:id/activate
- * Activate a user (Admin only)
- */
-export async function activateUser(req: AuthRequest, res: Response): Promise<void> {
-  try {
-    const userId = req.params.id;
-
-    // Validate ObjectId format
-    if (!ObjectId.isValid(userId)) {
-      res.status(400).json({
-        message: 'Invalid user ID format',
-        ok: false,
-        status: 400,
-      });
-      return;
-    }
-
-    const db = getDb(req);
-    const result = await db.collection<UserDocument>('users').updateOne(
-      { _id: new ObjectId(userId) },
-      {
-        $set: {
-          is_active: true,
-          updated_at: new Date(),
-        },
-      },
-    );
-
-    if (result.matchedCount === 0) {
-      res.status(404).json({
-        message: 'User not found',
-        ok: false,
-        status: 404,
-      });
-      return;
-    }
-
-    res.json({
-      message: 'User activated successfully',
-      ok: true,
-      status: 200,
-    });
-  } catch (error) {
-    console.error('Activate user error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({
-      message: 'Server error',
-      ok: false,
-      status: 500,
-      error: errorMessage,
-    });
-  }
-}
-
-/**
- * DELETE /api/auth/users/:id
- * Delete a user (Admin only)
- */
-export async function deleteUser(req: AuthRequest, res: Response): Promise<void> {
-  try {
-    const userId = req.params.id;
-
-    // Validate ObjectId format
-    if (!ObjectId.isValid(userId)) {
-      res.status(400).json({
-        message: 'Invalid user ID format',
-        ok: false,
-        status: 400,
-      });
-      return;
-    }
-
-    const db = getDb(req);
-    const result = await db
-      .collection<UserDocument>('users')
-      .deleteOne({ _id: new ObjectId(userId) });
-
-    if (result.deletedCount === 0) {
-      res.status(404).json({
-        message: 'User not found',
-        ok: false,
-        status: 404,
-      });
-      return;
-    }
-
-    res.json({
-      message: 'User deleted successfully',
-      ok: true,
-      status: 200,
-    });
-  } catch (error) {
-    console.error('Delete user error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({
-      message: 'Server error',
-      ok: false,
-      status: 500,
-      error: errorMessage,
-    });
-  }
 }
