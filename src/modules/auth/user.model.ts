@@ -1,5 +1,4 @@
 import { DEFAULT_ROLE, Role } from '../../constants/roles';
-import { ObjectId } from 'mongodb';
 import { UserDocument } from '../../types/authInterfaces';
 
 /**
@@ -15,7 +14,6 @@ export interface UserResponse {
   is_active: boolean;
   created_at: Date;
   updated_at: Date;
-  promoted_by?: ObjectId;
 }
 
 /**
@@ -29,7 +27,6 @@ export function createUserResponse(user: User): UserResponse {
     is_active: user.is_active,
     created_at: user.created_at,
     updated_at: user.updated_at,
-    promoted_by: user.promoted_by,
   };
 }
 

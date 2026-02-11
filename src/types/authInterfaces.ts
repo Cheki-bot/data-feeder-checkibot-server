@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { Db, ObjectId, WithId } from 'mongodb';
+import { Db } from 'mongodb';
 import { Role } from '../constants/roles';
 import { TokenPayload } from '../utils/auth';
 
@@ -16,7 +16,6 @@ export interface UserDocument {
   updated_at: Date;
   failed_attempts?: number;
   lockout_until?: Date;
-  promoted_by?: ObjectId;
 }
 
 /**
@@ -24,7 +23,7 @@ export interface UserDocument {
  */
 export interface AuthRequest extends Request {
   user?: TokenPayload;
-  currentUser?: Omit<WithId<UserDocument>, 'password_hash'>;
+  currentUser?: Omit<UserDocument, 'password_hash'>;
 }
 
 /**
