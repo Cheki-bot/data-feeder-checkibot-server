@@ -1,14 +1,15 @@
 import { Response } from 'express';
 import { validationResult } from 'express-validator';
 import { ObjectId } from 'mongodb';
-import * as AuthService from './auth.service';
 import {
   AuthRequest,
-  RegisterBody,
   LoginBody,
+  RegisterBody,
   UserDocument,
   getDb,
 } from '../../types/authInterfaces';
+import { generateToken } from '../../utils/auth';
+import * as AuthService from './auth.service';
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 60;
@@ -34,11 +35,32 @@ export async function register(req: AuthRequest, res: Response): Promise<void> {
     const db = getDb(req);
     const user = await AuthService.registerUser(db, username, email, password, role);
 
+    // Generate token for the new user
+    const token = generateToken(
+      {
+        sub: user.email,
+        username: user.username,
+        role: user.role,
+      },
+      '24h',
+    );
+
     res.status(201).json({
       message: 'User registered successfully',
       ok: true,
       status: 201,
-      data: user,
+      data: {
+        user: {
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          is_active: user.is_active,
+          created_at: user.created_at,
+          updated_at: user.updated_at,
+        },
+        access_token: token,
+        token_type: 'bearer',
+      },
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -422,7 +444,7 @@ export async function deleteUser(req: AuthRequest, res: Response): Promise<void>
 }
 
 /**
- * PATCH /auth/change-password
+ * PATCH /auth/me/change-password
  * Change user password
  */
 export async function changePassword(req: AuthRequest, res: Response): Promise<void> {

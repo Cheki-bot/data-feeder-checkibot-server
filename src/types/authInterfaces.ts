@@ -7,10 +7,10 @@ import { TokenPayload } from '../utils/auth';
  * User document in MongoDB
  */
 export interface UserDocument {
-  username: string;
-  email: string;
-  password_hash: string;
-  role: Role;
+  username: string | null;
+  email: string | null;
+  password_hash: string | null;
+  role: Role | null;
   is_active: boolean;
   created_at: Date;
   updated_at: Date;
@@ -46,6 +46,13 @@ export interface RegisterBody {
   password: string;
   confirmPassword: string;
   role?: Role;
+}
+
+export interface UpdateUserBody {
+  username: string | null;
+  email: string | null;
+  password: string | null;
+  is_active: boolean | null;
 }
 
 /**
