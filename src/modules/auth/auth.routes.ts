@@ -131,7 +131,6 @@ const router = Router();
  *                       msg:
  *                         type: string
  *                         example: Username must be between 3 and 30 characters
- *                         type: string
  *                   example:
  *                     - type: field
  *                       msg: Username is required

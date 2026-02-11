@@ -2,7 +2,7 @@ import { Db, ObjectId, WithId } from 'mongodb';
 import { DEFAULT_ROLE, Role, ROLES } from '../../constants/roles';
 import { UserDocument } from '../../types/authInterfaces';
 import { generateToken, hashPassword, verifyPassword } from '../../utils/auth';
-import { createUserDocument, createUserResponse, UserResponse } from './user.model';
+import { createUserDocument, createUserResponse, UserResponse } from '../users/user.model';
 
 interface LoginResponse {
   access_token: string;
@@ -60,14 +60,13 @@ export async function loginUser(db: Db, email: string, password: string): Promis
   }
 
   // Check if user account is active
-  if (user.is_active === false) {
+  if (!user.is_active) {
     throw new Error('ACCOUNT_DEACTIVATED');
   }
 
   const isValidPassword = await verifyPassword(password, user.password_hash);
 
-  if (isValidPassword === false) {
-    throw new Error('INVALID_CREDENTIALS');
+  if (!isValidPassword) {
   }
 
   const token = generateToken(
@@ -144,7 +143,7 @@ export async function changeUserRole(
     throw new Error('CANNOT_CHANGE_OWN_ROLE');
   }
 
-  if (currentAdmin.promoted_by && user.role === ROLES.ADMIN) {
+  if (currentAdmin.promoted_by != null && user.role === ROLES.ADMIN) {
     const isPromoterAdmin = user.promoted_by?.toString() === currentAdmin._id.toString();
     if (!isPromoterAdmin) {
       throw new Error('ADMIN_CAN_ONLY_PROMOTE_USERS_OWNED_OR_ORIGINAL');

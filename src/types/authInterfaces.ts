@@ -49,6 +49,13 @@ export interface RegisterBody {
   role?: Role;
 }
 
+export interface UpdateUserBody {
+  username: string | null;
+  email: string | null;
+  password: string | null;
+  is_active: boolean | null;
+}
+
 /**
  * Request body for login
  */

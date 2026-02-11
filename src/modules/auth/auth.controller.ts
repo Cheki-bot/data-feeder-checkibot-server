@@ -9,6 +9,7 @@ import {
   RegisterBody,
   UserDocument,
 } from '../../types/authInterfaces';
+import { generateToken } from '../../utils/auth';
 import * as AuthService from './auth.service';
 
 const MAX_LOGIN_ATTEMPTS = 5;
@@ -35,11 +36,25 @@ export async function register(req: AuthRequest, res: Response): Promise<void> {
     const db = getDb(req);
     const user = await AuthService.registerUser(db, username, email, password);
 
+    // Generate token for the new user
+    const token = generateToken(
+      {
+        sub: user.email,
+        username: user.username,
+        role: user.role,
+      },
+      '24h',
+    );
+
     res.status(201).json({
       message: 'User registered successfully',
       ok: true,
       status: 201,
-      data: user,
+      data: {
+        user: user,
+        access_token: token,
+        token_type: 'bearer',
+      },
     });
   } catch (error) {
     console.error('Registration error:', error);
