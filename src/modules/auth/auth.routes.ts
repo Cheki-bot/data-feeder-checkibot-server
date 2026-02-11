@@ -1,5 +1,9 @@
 import { Router } from 'express';
-import { registerValidation, loginValidation } from '../../validators/auth';
+import {
+  registerValidation,
+  loginValidation,
+  changePasswordValidation,
+} from '../../validators/auth';
 import { authenticateToken, getCurrentUser, requireAdmin } from '../../middleware/auth';
 import * as AuthController from './auth.controller';
 
@@ -38,6 +42,11 @@ const router = Router();
  *         updated_at:
  *           type: string
  *           format: date-time
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
  */
 
 /**
@@ -745,6 +754,134 @@ router.delete(
   getCurrentUser,
   requireAdmin,
   AuthController.deleteUser,
+);
+
+/**
+ * @openapi
+ * /auth/me/change-password:
+ *   patch:
+ *     summary: Change user password
+ *     description: Change the password of the authenticated user
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *               - confirmPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 minLength: 8
+ *                 description: Current password for verification
+ *                 example: OldPassword123
+ *               newPassword:
+ *                 type: string
+ *                 minLength: 8
+ *                 maxLength: 72
+ *                 description: New password (must be different from current)
+ *                 example: NewPassword456
+ *               confirmPassword:
+ *                 type: string
+ *                 minLength: 8
+ *                 maxLength: 72
+ *                 description: Confirmation of new password (must match newPassword)
+ *                 example: NewPassword456
+ *     responses:
+ *       200:
+ *         description: Password changed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Password changed successfully
+ *                 ok:
+ *                   type: boolean
+ *                   example: true
+ *                 status:
+ *                   type: number
+ *                   example: 200
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Validation errors
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 400
+ *                 errors:
+ *                   type: array
+ *       401:
+ *         description: Unauthorized or incorrect current password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Current password is incorrect
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 401
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: User not found
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 404
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Internal server error
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: number
+ *                   example: 500
+ */
+router.patch(
+  '/me/change-password',
+  authenticateToken,
+  changePasswordValidation,
+  AuthController.changePassword,
 );
 
 export default router;

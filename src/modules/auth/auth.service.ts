@@ -111,3 +111,43 @@ export async function getUserByEmail(
 
   return user;
 }
+
+/**
+ * Change user password
+ */
+export async function changePassword(
+  db: Db,
+  email: string,
+  currentPassword: string,
+  newPassword: string,
+): Promise<{ message: string }> {
+  const normalizedEmail = email.toLowerCase().trim();
+
+  const user = await db.collection<UserDocument>('users').findOne({ email: normalizedEmail });
+
+  if (user === null) {
+    throw new Error('USER_NOT_FOUND');
+  }
+
+  const isValidPassword = await verifyPassword(currentPassword, user.password_hash);
+  if (isValidPassword === false) {
+    throw new Error('INVALID_CURRENT_PASSWORD');
+  }
+
+  const newPasswordHash = await hashPassword(newPassword);
+  const result = await db.collection<UserDocument>('users').updateOne(
+    { email: normalizedEmail },
+    {
+      $set: {
+        password_hash: newPasswordHash,
+        updated_at: new Date(),
+      },
+    },
+  );
+
+  if (result.matchedCount === 0) {
+    throw new Error('USER_NOT_FOUND');
+  }
+
+  return { message: 'Password changed successfully' };
+}

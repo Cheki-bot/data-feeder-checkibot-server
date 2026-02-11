@@ -420,3 +420,71 @@ export async function deleteUser(req: AuthRequest, res: Response): Promise<void>
     });
   }
 }
+
+/**
+ * PATCH /auth/change-password
+ * Change user password
+ */
+export async function changePassword(req: AuthRequest, res: Response): Promise<void> {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.status(400).json({
+      message: 'Validation errors',
+      ok: false,
+      status: 400,
+      errors: errors.array(),
+    });
+    return;
+  }
+
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: 'UNAUTHORIZED', ok: false, status: 401 });
+      return;
+    }
+
+    interface ChangePasswordBody {
+      currentPassword: string;
+      newPassword: string;
+      confirmPassword: string;
+    }
+
+    const { currentPassword, newPassword } = req.body as ChangePasswordBody;
+
+    const db = getDb(req);
+    const result = await AuthService.changePassword(db, req.user.sub, currentPassword, newPassword);
+
+    res.status(200).json({
+      message: result.message,
+      ok: true,
+      status: 200,
+    });
+  } catch (error) {
+    console.error('Change password error:', error);
+
+    if (error instanceof Error) {
+      if (error.message === 'INVALID_CURRENT_PASSWORD') {
+        res.status(401).json({
+          message: 'Current password is incorrect',
+          ok: false,
+          status: 401,
+        });
+        return;
+      }
+      if (error.message === 'USER_NOT_FOUND') {
+        res.status(404).json({
+          message: 'User not found',
+          ok: false,
+          status: 404,
+        });
+        return;
+      }
+    }
+
+    res.status(500).json({
+      message: 'Internal server error',
+      ok: false,
+      status: 500,
+    });
+  }
+}
