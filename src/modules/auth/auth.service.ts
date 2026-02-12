@@ -67,6 +67,7 @@ export async function loginUser(db: Db, email: string, password: string): Promis
   const isValidPassword = await verifyPassword(password, user.password_hash);
 
   if (!isValidPassword) {
+    throw new Error('INVALID_CREDENTIALS');
   }
 
   const token = generateToken(

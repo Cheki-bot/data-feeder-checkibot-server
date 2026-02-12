@@ -156,6 +156,15 @@ export async function login(req: AuthRequest, res: Response): Promise<void> {
       },
     );
 
+    if (result === null) {
+      res.status(401).json({
+        message: 'Invalid credentials',
+        ok: false,
+        status: 401,
+      });
+      return;
+    }
+
     res.json({
       message: 'Login successful',
       ok: true,
