@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { validationResult } from 'express-validator';
 import { ObjectId } from 'mongodb';
 import { AuthRequest, RegisterBody, UpdateUserBody, getDb } from '../../types/authInterfaces';
 import * as AuthService from '../auth/auth.service';
@@ -76,13 +77,24 @@ export async function getUserById(req: AuthRequest, res: Response): Promise<void
 }
 
 /**
- * PUT /api/users/:id
+ * PATCH /api/users/:id
  * Update user (Admin only)
  */
 export async function updateUser(req: AuthRequest, res: Response): Promise<void> {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.status(400).json({
+      message: 'Validation errors',
+      ok: false,
+      status: 400,
+      errors: errors.array(),
+    });
+    return;
+  }
+
   try {
     const userId = req.params.id;
-    const { username, email, password, is_active } = req.body as UpdateUserBody;
+    const { username, email, password, role, is_active } = req.body as UpdateUserBody;
 
     // Validate ObjectId format
     if (!ObjectId.isValid(userId)) {
@@ -99,6 +111,7 @@ export async function updateUser(req: AuthRequest, res: Response): Promise<void>
       username,
       email,
       password,
+      role,
       is_active,
     });
 

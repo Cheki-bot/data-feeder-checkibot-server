@@ -48,21 +48,27 @@ export async function updateUser(
   if (!ObjectId.isValid(id)) {
     throw new Error('INVALID_USER_ID');
   }
-  const newData = {} as UserDocument;
+  const newData: Partial<UserDocument> = {
+    updated_at: new Date(),
+  };
 
-  if (updateData.email !== null) {
+  if (updateData.email !== undefined) {
     newData.email = updateData.email;
   }
 
-  if (updateData.username !== null) {
+  if (updateData.username !== undefined) {
     newData.username = updateData.username;
   }
 
-  if (updateData.is_active !== null) {
+  if (updateData.role !== undefined) {
+    newData.role = updateData.role;
+  }
+
+  if (updateData.is_active !== undefined) {
     newData.is_active = updateData.is_active;
   }
 
-  if (updateData.password !== null) {
+  if (updateData.password !== undefined) {
     const passwordHash = await hashPassword(updateData.password);
     newData.password_hash = passwordHash;
   }

@@ -14,6 +14,11 @@ export const updateUserValidation: ValidationChain[] = [
 
   body('email').optional().isEmail().withMessage('Must be a valid email address').normalizeEmail(),
 
+  body('password')
+    .optional()
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters'),
+
   body('role')
     .optional()
     .isIn(ROLE_VALUES)
