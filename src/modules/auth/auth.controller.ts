@@ -1,12 +1,13 @@
+import { Role } from '@/constants/roles';
 import { Response } from 'express';
 import { validationResult } from 'express-validator';
 import { ObjectId } from 'mongodb';
 import {
   AuthRequest,
+  getDb,
   LoginBody,
   RegisterBody,
   UserDocument,
-  getDb,
 } from '../../types/authInterfaces';
 import { generateToken } from '../../utils/auth';
 import * as AuthService from './auth.service';
@@ -30,10 +31,10 @@ export async function register(req: AuthRequest, res: Response): Promise<void> {
     return;
   }
 
-  const { username, email, password, role } = req.body as RegisterBody;
+  const { username, email, password } = req.body as RegisterBody;
   try {
     const db = getDb(req);
-    const user = await AuthService.registerUser(db, username, email, password, role);
+    const user = await AuthService.registerUser(db, username, email, password);
 
     // Generate token for the new user
     const token = generateToken(
@@ -50,14 +51,7 @@ export async function register(req: AuthRequest, res: Response): Promise<void> {
       ok: true,
       status: 201,
       data: {
-        user: {
-          username: user.username,
-          email: user.email,
-          role: user.role,
-          is_active: user.is_active,
-          created_at: user.created_at,
-          updated_at: user.updated_at,
-        },
+        user: user,
         access_token: token,
         token_type: 'bearer',
       },
@@ -444,7 +438,110 @@ export async function deleteUser(req: AuthRequest, res: Response): Promise<void>
 }
 
 /**
- * PATCH /auth/me/change-password
+ * PUT /api/auth/users/:id/role
+ * Change user role (Admin only)
+ */
+export async function changeUserRole(req: AuthRequest, res: Response): Promise<void> {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.status(400).json({
+      message: 'Validation errors',
+      ok: false,
+      status: 400,
+      errors: errors.array(),
+    });
+    return;
+  }
+
+  const { id } = req.params;
+  const { role } = req.body as { role: Role };
+  const currentUser = req.currentUser;
+
+  try {
+    // Validate ObjectId format
+    if (!ObjectId.isValid(id)) {
+      res.status(400).json({
+        message: 'Invalid user ID format',
+        ok: false,
+        status: 400,
+      });
+      return;
+    }
+
+    // Check if current user is authenticated
+    if (!currentUser) {
+      res.status(401).json({
+        message: 'User not authenticated',
+        ok: false,
+        status: 401,
+      });
+      return;
+    }
+
+    const db = getDb(req);
+    const updatedUser = await AuthService.changeUserRole(db, id, role, currentUser);
+
+    res.json({
+      message: 'User role changed successfully',
+      ok: true,
+      status: 200,
+      data: updatedUser,
+    });
+  } catch (error) {
+    console.error('Change user role error:', error);
+
+    if (error instanceof Error && error.message === 'USER_NOT_FOUND') {
+      res.status(404).json({
+        message: 'User not found',
+        ok: false,
+        status: 404,
+      });
+      return;
+    }
+
+    if (error instanceof Error && error.message === 'CANNOT_CHANGE_OWN_ROLE') {
+      res.status(400).json({
+        message: 'Cannot change your own role',
+        ok: false,
+        status: 400,
+      });
+      return;
+    }
+
+    if (
+      error instanceof Error &&
+      error.message === 'ADMIN_CAN_ONLY_PROMOTE_USERS_OWNED_OR_ORIGINAL'
+    ) {
+      res.status(403).json({
+        message:
+          'Admin can only change the role of employees or admins they promoted, unless they are the original administrator.',
+        ok: false,
+        status: 403,
+      });
+      return;
+    }
+
+    if (error instanceof Error && error.message === 'USER_UPDATE_FAILED') {
+      res.status(500).json({
+        message: 'Failed to update user role',
+        ok: false,
+        status: 500,
+      });
+      return;
+    }
+
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({
+      message: 'Server error',
+      ok: false,
+      status: 500,
+      error: errorMessage,
+    });
+  }
+}
+
+/**
+ * PATCH /auth/change-password
  * Change user password
  */
 export async function changePassword(req: AuthRequest, res: Response): Promise<void> {

@@ -31,11 +31,6 @@ export const registerValidation: ValidationChain[] = [
       }
       return true;
     }),
-
-  body('role')
-    .optional()
-    .isIn(ROLE_VALUES)
-    .withMessage(`Role must be one of: ${ROLE_VALUES.join(', ')}`),
 ];
 
 /**
@@ -84,4 +79,15 @@ export const changePasswordValidation: ValidationChain[] = [
       }
       return true;
     }),
+];
+
+/**
+ * Validation rules for changing user role
+ */
+export const changeUserRoleValidation: ValidationChain[] = [
+  param('id').isMongoId().withMessage('User ID must be a valid MongoDB ObjectId'),
+
+  body('role')
+    .isIn(ROLE_VALUES)
+    .withMessage(`Role must be one of: ${ROLE_VALUES.join(', ')}`),
 ];
