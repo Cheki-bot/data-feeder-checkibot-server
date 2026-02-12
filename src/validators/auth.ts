@@ -50,6 +50,38 @@ export const emailParamValidation: ValidationChain[] = [
 ];
 
 /**
+ * Validation rules for changing password
+ */
+export const changePasswordValidation: ValidationChain[] = [
+  body('currentPassword')
+    .notEmpty()
+    .withMessage('Current password is required')
+    .isString()
+    .withMessage('Current password must be a string'),
+
+  body('newPassword')
+    .notEmpty()
+    .withMessage('New password is required')
+    .isLength({ min: 8, max: 72 })
+    .withMessage('Password must be between 8 and 72 characters long')
+    .isString()
+    .withMessage('New password must be a string'),
+
+  body('confirmPassword')
+    .notEmpty()
+    .withMessage('Confirm password is required')
+    .isString()
+    .withMessage('Confirm password must be a string')
+    .custom((value, { req }) => {
+      const body = req.body as { newPassword?: string };
+      if (value !== body.newPassword) {
+        throw new Error('Passwords do not match');
+      }
+      return true;
+    }),
+];
+
+/**
  * Validation rules for changing user role
  */
 export const changeUserRoleValidation: ValidationChain[] = [
