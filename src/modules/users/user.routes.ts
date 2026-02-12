@@ -310,7 +310,7 @@ router.get(
 /**
  * @openapi
  * /users/{id}:
- *   put:
+ *   patch:
  *     summary: Update user
  *     description: Update user information (Admin only)
  *     tags: [Users]
@@ -366,7 +366,7 @@ router.get(
  *         $ref: '#/components/responses/InternalServerError'
  */
 // Admin-only routes - Update user
-router.put(
+router.patch(
   '/:id',
   authenticateToken,
   getCurrentUser,

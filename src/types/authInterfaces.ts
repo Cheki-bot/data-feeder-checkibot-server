@@ -50,10 +50,11 @@ export interface RegisterBody {
 }
 
 export interface UpdateUserBody {
-  username: string | null;
-  email: string | null;
-  password: string | null;
-  is_active: boolean | null;
+  username?: string;
+  email?: string;
+  password?: string;
+  role?: Role;
+  is_active?: boolean;
 }
 
 /**
