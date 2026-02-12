@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { Db } from 'mongodb';
+import { Db, ObjectId, WithId } from 'mongodb';
 import { Role } from '../constants/roles';
 import { TokenPayload } from '../utils/auth';
 
@@ -7,15 +7,16 @@ import { TokenPayload } from '../utils/auth';
  * User document in MongoDB
  */
 export interface UserDocument {
-  username: string | null;
-  email: string | null;
-  password_hash: string | null;
-  role: Role | null;
+  username: string;
+  email: string;
+  password_hash: string;
+  role: Role;
   is_active: boolean;
   created_at: Date;
   updated_at: Date;
   failed_attempts?: number;
   lockout_until?: Date;
+  promoted_by?: ObjectId;
 }
 
 /**
@@ -23,7 +24,7 @@ export interface UserDocument {
  */
 export interface AuthRequest extends Request {
   user?: TokenPayload;
-  currentUser?: Omit<UserDocument, 'password_hash'>;
+  currentUser?: Omit<WithId<UserDocument>, 'password_hash'>;
 }
 
 /**

@@ -1,11 +1,13 @@
+import { Role } from '@/constants/roles';
 import { Response } from 'express';
 import { validationResult } from 'express-validator';
+import { ObjectId } from 'mongodb';
 import {
   AuthRequest,
+  getDb,
   LoginBody,
   RegisterBody,
   UserDocument,
-  getDb,
 } from '../../types/authInterfaces';
 import { generateToken } from '../../utils/auth';
 import * as AuthService from './auth.service';
@@ -29,10 +31,10 @@ export async function register(req: AuthRequest, res: Response): Promise<void> {
     return;
   }
 
-  const { username, email, password, role } = req.body as RegisterBody;
+  const { username, email, password } = req.body as RegisterBody;
   try {
     const db = getDb(req);
-    const user = await AuthService.registerUser(db, username, email, password, role);
+    const user = await AuthService.registerUser(db, username, email, password);
 
     // Generate token for the new user
     const token = generateToken(
@@ -49,14 +51,7 @@ export async function register(req: AuthRequest, res: Response): Promise<void> {
       ok: true,
       status: 201,
       data: {
-        user: {
-          username: user.username,
-          email: user.email,
-          role: user.role,
-          is_active: user.is_active,
-          created_at: user.created_at,
-          updated_at: user.updated_at,
-        },
+        user: user,
         access_token: token,
         token_type: 'bearer',
       },
@@ -251,4 +246,296 @@ export function getProfile(req: AuthRequest, res: Response): void {
     status: 200,
     data: req.currentUser,
   });
+}
+
+/**
+ * GET /api/auth/users
+ * List all users (Admin only)
+ */
+export async function listUsers(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const db = getDb(req);
+    const users = await db
+      .collection<UserDocument>('users')
+      .find({}, { projection: { password_hash: 0, failed_attempts: 0, lockout_until: 0 } })
+      .toArray();
+
+    res.json({
+      message: 'Users retrieved successfully',
+      ok: true,
+      status: 200,
+      data: users,
+    });
+  } catch (error) {
+    console.error('List users error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({
+      message: 'Server error',
+      ok: false,
+      status: 500,
+      error: errorMessage,
+    });
+  }
+}
+
+/**
+ * PUT /api/auth/users/:id/deactivate
+ * Deactivate a user (Admin only)
+ */
+export async function deactivateUser(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.params.id;
+
+    // Validate ObjectId format
+    if (!ObjectId.isValid(userId)) {
+      res.status(400).json({
+        message: 'Invalid user ID format',
+        ok: false,
+        status: 400,
+      });
+      return;
+    }
+
+    const db = getDb(req);
+    const result = await db.collection<UserDocument>('users').updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $set: {
+          is_active: false,
+          updated_at: new Date(),
+        },
+      },
+    );
+
+    if (result.matchedCount === 0) {
+      res.status(404).json({
+        message: 'User not found',
+        ok: false,
+        status: 404,
+      });
+      return;
+    }
+
+    res.json({
+      message: 'User deactivated successfully',
+      ok: true,
+      status: 200,
+    });
+  } catch (error) {
+    console.error('Deactivate user error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({
+      message: 'Server error',
+      ok: false,
+      status: 500,
+      error: errorMessage,
+    });
+  }
+}
+
+/**
+ * PUT /api/auth/users/:id/activate
+ * Activate a user (Admin only)
+ */
+export async function activateUser(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.params.id;
+
+    // Validate ObjectId format
+    if (!ObjectId.isValid(userId)) {
+      res.status(400).json({
+        message: 'Invalid user ID format',
+        ok: false,
+        status: 400,
+      });
+      return;
+    }
+
+    const db = getDb(req);
+    const result = await db.collection<UserDocument>('users').updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $set: {
+          is_active: true,
+          updated_at: new Date(),
+        },
+      },
+    );
+
+    if (result.matchedCount === 0) {
+      res.status(404).json({
+        message: 'User not found',
+        ok: false,
+        status: 404,
+      });
+      return;
+    }
+
+    res.json({
+      message: 'User activated successfully',
+      ok: true,
+      status: 200,
+    });
+  } catch (error) {
+    console.error('Activate user error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({
+      message: 'Server error',
+      ok: false,
+      status: 500,
+      error: errorMessage,
+    });
+  }
+}
+
+/**
+ * DELETE /api/auth/users/:id
+ * Delete a user (Admin only)
+ */
+export async function deleteUser(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.params.id;
+
+    // Validate ObjectId format
+    if (!ObjectId.isValid(userId)) {
+      res.status(400).json({
+        message: 'Invalid user ID format',
+        ok: false,
+        status: 400,
+      });
+      return;
+    }
+
+    const db = getDb(req);
+    const result = await db
+      .collection<UserDocument>('users')
+      .deleteOne({ _id: new ObjectId(userId) });
+
+    if (result.deletedCount === 0) {
+      res.status(404).json({
+        message: 'User not found',
+        ok: false,
+        status: 404,
+      });
+      return;
+    }
+
+    res.json({
+      message: 'User deleted successfully',
+      ok: true,
+      status: 200,
+    });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({
+      message: 'Server error',
+      ok: false,
+      status: 500,
+      error: errorMessage,
+    });
+  }
+}
+
+/**
+ * PUT /api/auth/users/:id/role
+ * Change user role (Admin only)
+ */
+export async function changeUserRole(req: AuthRequest, res: Response): Promise<void> {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.status(400).json({
+      message: 'Validation errors',
+      ok: false,
+      status: 400,
+      errors: errors.array(),
+    });
+    return;
+  }
+
+  const { id } = req.params;
+  const { role } = req.body as { role: Role };
+  const currentUser = req.currentUser;
+
+  try {
+    // Validate ObjectId format
+    if (!ObjectId.isValid(id)) {
+      res.status(400).json({
+        message: 'Invalid user ID format',
+        ok: false,
+        status: 400,
+      });
+      return;
+    }
+
+    // Check if current user is authenticated
+    if (!currentUser) {
+      res.status(401).json({
+        message: 'User not authenticated',
+        ok: false,
+        status: 401,
+      });
+      return;
+    }
+
+    const db = getDb(req);
+    const updatedUser = await AuthService.changeUserRole(db, id, role, currentUser);
+
+    res.json({
+      message: 'User role changed successfully',
+      ok: true,
+      status: 200,
+      data: updatedUser,
+    });
+  } catch (error) {
+    console.error('Change user role error:', error);
+
+    if (error instanceof Error && error.message === 'USER_NOT_FOUND') {
+      res.status(404).json({
+        message: 'User not found',
+        ok: false,
+        status: 404,
+      });
+      return;
+    }
+
+    if (error instanceof Error && error.message === 'CANNOT_CHANGE_OWN_ROLE') {
+      res.status(400).json({
+        message: 'Cannot change your own role',
+        ok: false,
+        status: 400,
+      });
+      return;
+    }
+
+    if (
+      error instanceof Error &&
+      error.message === 'ADMIN_CAN_ONLY_PROMOTE_USERS_OWNED_OR_ORIGINAL'
+    ) {
+      res.status(403).json({
+        message:
+          'Admin can only change the role of employees or admins they promoted, unless they are the original administrator.',
+        ok: false,
+        status: 403,
+      });
+      return;
+    }
+
+    if (error instanceof Error && error.message === 'USER_UPDATE_FAILED') {
+      res.status(500).json({
+        message: 'Failed to update user role',
+        ok: false,
+        status: 500,
+      });
+      return;
+    }
+
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({
+      message: 'Server error',
+      ok: false,
+      status: 500,
+      error: errorMessage,
+    });
+  }
 }
