@@ -4,9 +4,9 @@
   "private": true,
   "type": "commonjs",
   "description": "API REST base con Express",
-  "main": "dist/server.ts",
+  "main": "dist/server.js",
   "scripts": {
-    "start": "NODE_ENV=production node dist/server.ts",
+    "start": "NODE_ENV=production node dist/server.js",
     "dev": "nodemon --watch src src/server.ts",
     "build": "tsc",
     "lint": "eslint src --config eslint.config.mjs",
