@@ -4,7 +4,7 @@
   "private": true,
   "type": "commonjs",
   "description": "API REST base con Express",
-  "main": "dist/server.js",
+  "main": "dist/server.ts",
   "scripts": {
     "start": "NODE_ENV=production node dist/server.ts",
     "dev": "nodemon --watch src src/server.ts",
