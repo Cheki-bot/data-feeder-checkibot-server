@@ -292,7 +292,7 @@ export async function createUser(req: AuthRequest, res: Response): Promise<void>
     const { username, email, password } = req.body as RegisterBody;
 
     const db = getDb(req);
-    const newUser = await AuthService.registerUser(db, username, email, password, 'user');
+    const newUser = await AuthService.registerUser(db, username, email, password);
 
     res.status(201).json({
       message: 'User created successfully',
