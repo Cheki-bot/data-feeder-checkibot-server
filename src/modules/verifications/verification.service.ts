@@ -140,6 +140,7 @@ export async function createMultipleNewsVerifications(
   verificationsData: CreateNewsVerificationData[],
   userEmail: string,
 ): Promise<NewsVerificationResponse[]> {
+  console.log('hola: ', verificationsData[0]);
   const verificationDocs = verificationsData.map(data =>
     createNewsVerificationDocument(data, userEmail),
   );

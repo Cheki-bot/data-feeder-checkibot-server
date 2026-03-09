@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-
+import { parseCustomDateToISO } from '../../utils/date-parser';
 /**
  * News Verification Model
  * Represents a news verification in the system
@@ -18,7 +18,7 @@ export interface NewsVerificationDocument {
   summary: string;
   body: string;
   url: string;
-  publication_date: Date;
+  publication_date: string;
   tags: NewsTag[];
   created_by: string;
   created_at: Date;
@@ -33,7 +33,7 @@ export interface NewsVerificationResponse {
   summary: string;
   body: string;
   url: string;
-  publication_date: Date;
+  publication_date: string;
   tags: NewsTag[];
   created_by: string;
   created_at: Date;
@@ -47,7 +47,7 @@ export interface CreateNewsVerificationData {
   summary: string;
   body: string;
   url: string;
-  publication_date: Date;
+  publication_date: string;
   tags: NewsTag[];
 }
 
@@ -59,6 +59,9 @@ export function createNewsVerificationDocument(
   userEmail: string,
 ): Omit<NewsVerificationDocument, '_id'> {
   const now = new Date();
+  const parsedDate = parseCustomDateToISO(verificationData.publication_date);
+  console.log('se parseo?: ', parsedDate);
+  const publicationDate = parsedDate ?? verificationData.publication_date;
 
   return {
     title: verificationData.title,
@@ -67,7 +70,7 @@ export function createNewsVerificationDocument(
     summary: verificationData.summary,
     body: verificationData.body,
     url: verificationData.url,
-    publication_date: verificationData.publication_date,
+    publication_date: publicationDate,
     tags: verificationData.tags,
     created_by: userEmail,
     created_at: now,
